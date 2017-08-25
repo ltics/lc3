@@ -28,5 +28,10 @@ TEST_CASE("binary_search") {
       token::Token tok = lexer::next_token(l);
       REQUIRE(tok.type == t.type);
       REQUIRE(tok.literal == t.literal);
+      REQUIRE('a' <= 'b');
+      //REQUIRE('h' <= 'c');
+      REQUIRE('A' <= 'B');
+      //REQUIRE('D' <= 'C');
+      REQUIRE('_' == '_');
     });
 }

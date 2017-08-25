@@ -24,6 +24,18 @@ namespace lexer {
     l->read_position += 1;
   }
 
+  auto is_letter(char ch) -> bool {
+    return ('a' <= ch && ch <= 'z') || ('A' <= ch && ch <= 'Z') || ch == '_';
+  }
+
+  auto read_identifier(shared_ptr<Lexer> l) -> string {
+    auto position = l->position;
+    while (is_letter(l->ch)) {
+      read_char(l);
+    }
+    return l->input.substr(position, l->position - position);
+  }
+
   auto new_token(string tokenType, char ch) -> token::Token {
     string ch_s(1, ch);
     return { tokenType, ch_s };
@@ -57,8 +69,16 @@ namespace lexer {
     case '}':
       tok = new_token(token::RBRACE, l->ch);
       break;
-    default:
+    case '\0':
       tok = new_token(token::EOFT, l->ch);
+      break;
+    default:
+      if (is_letter(l->ch)) {
+        tok.literal = read_identifier(l);
+
+      } else {
+        
+      }
     }
 
     read_char(l);

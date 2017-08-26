@@ -30,6 +30,7 @@ namespace token {
   const string LT = "<";
   const string GT = ">";
   const string EQ = "==";
+  const string NOT_EQ = "!=";
 
   // Delimiters
   const string COMMA = ",";

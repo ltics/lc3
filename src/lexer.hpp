@@ -24,14 +24,51 @@ namespace lexer {
     l->read_position += 1;
   }
 
+  auto peek_char(shared_ptr<Lexer> l) -> char {
+    if (l->read_position >= l->input.size()) {
+      return '\0';
+    } else {
+      return l->input.at(l->read_position);
+    }
+  }
+
+  auto skip_whitespace(shared_ptr<Lexer> l) -> void {
+    while (l->ch == ' ' || l->ch == '\t' || l->ch == '\n' || l->ch == '\r') {
+      read_char(l);
+    }
+  }
+
   auto is_letter(char ch) -> bool {
     return ('a' <= ch && ch <= 'z') || ('A' <= ch && ch <= 'Z') || ch == '_';
+  }
+
+  auto is_digit(char ch) -> bool {
+    return '0' <= ch && ch <= '9';
   }
 
   auto read_identifier(shared_ptr<Lexer> l) -> string {
     auto position = l->position;
     while (is_letter(l->ch)) {
       read_char(l);
+    }
+    return l->input.substr(position, l->position - position);
+  }
+
+  auto read_number(shared_ptr<Lexer> l) -> string {
+    auto position = l->position;
+    while (is_digit(l->ch)) {
+      read_char(l);
+    }
+    return l->input.substr(position, l->position - position);
+  }
+
+  auto read_string(shared_ptr<Lexer> l) -> string {
+    auto position = l->position + 1;
+    while (true) {
+      read_char(l);
+      if (l->ch == '"' || l->ch == '\0') {
+        break;
+      }
     }
     return l->input.substr(position, l->position - position);
   }
@@ -44,12 +81,51 @@ namespace lexer {
   auto next_token(shared_ptr<Lexer> l) -> token::Token {
     token::Token tok;
 
+    skip_whitespace(l);
+
     switch (l->ch) {
     case '=':
-      tok = new_token(token::ASSIGN, l->ch);
+      if (peek_char(l) == '=') {
+        read_char(l);
+        tok = { token::EQ, "==" };
+      } else {
+        tok = new_token(token::ASSIGN, l->ch);
+      }
+      break;
+    case '+':
+      tok = new_token(token::PLUS, l->ch);
+      break;
+    case '-':
+      tok = new_token(token::MINUS, l->ch);
+      break;
+    case '!':
+      if (peek_char(l) == '=') {
+        read_char(l);
+        tok = { token::NOT_EQ, "!=" };
+      } else {
+        tok = new_token(token::BANG, l->ch);
+      }
+      break;
+    case '/':
+      tok = new_token(token::SLASH, l->ch);
+      break;
+    case '*':
+      tok = new_token(token::ASTERISK, l->ch);
+      break;
+    case '<':
+      tok = new_token(token::LT, l->ch);
+      break;
+    case '>':
+      tok = new_token(token::GT, l->ch);
       break;
     case ';':
       tok = new_token(token::SEMICOLON, l->ch);
+      break;
+    case ':':
+      tok = new_token(token::COLON, l->ch);
+      break;
+    case ',':
+      tok = new_token(token::COMMA, l->ch);
       break;
     case '(':
       tok = new_token(token::LPAREN, l->ch);
@@ -57,27 +133,32 @@ namespace lexer {
     case ')':
       tok = new_token(token::RPAREN, l->ch);
       break;
-    case ',':
-      tok = new_token(token::COMMA, l->ch);
-      break;
-    case '+':
-      tok = new_token(token::PLUS, l->ch);
-      break;
     case '{':
       tok = new_token(token::LBRACE, l->ch);
       break;
     case '}':
       tok = new_token(token::RBRACE, l->ch);
       break;
+    case '[':
+      tok = new_token(token::LBRACKET, l->ch);
+      break;
+    case ']':
+      tok = new_token(token::RBRACKET, l->ch);
+      break;
+    case '"':
+      tok = { token::STRING, read_string(l) };
+      break;
     case '\0':
       tok = new_token(token::EOFT, l->ch);
       break;
     default:
       if (is_letter(l->ch)) {
-        tok.literal = read_identifier(l);
-
+        auto literal = read_identifier(l);
+        return { token::lookup_indent_type(literal), literal };
+      } else if (is_digit(l->ch)) {
+        return { token::INT, read_number(l) };
       } else {
-        
+        tok = new_token(token::ILLEGAL, l->ch);
       }
     }
 

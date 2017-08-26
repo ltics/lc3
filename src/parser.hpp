@@ -12,9 +12,11 @@ namespace parser {
 
   public:
     Parser(shared_ptr<lexer::Lexer> l);
-    static auto new_parser(shared_ptr<lexer::Lexer> l) -> shared_ptr<Parser>;
+
     auto next_token() -> void;
     auto parse_program() -> shared_ptr<ast::Program>;
+
+    static auto new_parser(shared_ptr<lexer::Lexer> l) -> shared_ptr<Parser>;
   };
 
   Parser::Parser(shared_ptr<lexer::Lexer> l) {

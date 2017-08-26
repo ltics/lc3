@@ -39,7 +39,7 @@ TEST_CASE("binary_search") {
   string input;
   input = accumulate(inputs.cbegin(), inputs.cend(), input);
 
-  shared_ptr<lexer::Lexer> l = lexer::new_lexer(input);
+  shared_ptr<lexer::Lexer> l = lexer::Lexer::new_lexer(input);
 
   vector<token::Token> tests = {
     { token::LET, "let" },
@@ -132,7 +132,7 @@ TEST_CASE("binary_search") {
   };
 
   for_each(tests.cbegin(), tests.cend(), [=](token::Token t) -> void {
-      token::Token tok = lexer::next_token(l);
+      token::Token tok = l -> next_token();
       REQUIRE(tok.type == t.type);
       REQUIRE(tok.literal == t.literal);
     });

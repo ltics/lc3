@@ -15,4 +15,4 @@ install:
 script:
   - g++ --version
   - c++ --version
-  - ./test.sh
+  - make test

@@ -15,11 +15,11 @@ namespace repl {
       add_history(input);
       string input_s(input);
 
-      shared_ptr<lexer::Lexer> l = lexer::new_lexer(input_s);
-      auto tok = lexer::next_token(l);
+      shared_ptr<lexer::Lexer> l = lexer::Lexer::new_lexer(input_s);
+      auto tok = l->next_token();
       while (tok.type != token::EOFT) {
         cout << tok.type << " - " << tok.literal << endl;
-        tok = lexer::next_token(l);
+        tok = l->next_token();
       }
 
       free(input);

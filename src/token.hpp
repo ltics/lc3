@@ -6,53 +6,56 @@
 using namespace std;
 
 namespace token {
+  typedef string TokenType;
+  typedef string TokenLiteral;
+
   typedef struct {
-    string type;
-    string literal;
+    TokenType type;
+    TokenLiteral literal;
   } Token;
 
 
-  const string ILLEGAL = "ILLEGAL";
-  const string EOFT = "EOF";
+  const TokenType ILLEGAL = "ILLEGAL";
+  const TokenType EOFT = "EOF";
 
   // Identifiers + literals
-  const string IDENT = "IDENT"; // add, foobar, x, y, ...
-  const string INT = "INT"; // 1343456
-  const string STRING = "STRING"; // "foobar"
+  const TokenType IDENT = "IDENT"; // add, foobar, x, y, ...
+  const TokenType INT = "INT"; // 1343456
+  const TokenType STRING = "STRING"; // "foobar"
 
   // Operators
-  const string ASSIGN = "=";
-  const string PLUS = "+";
-  const string MINUS = "-";
-  const string BANG = "!";
-  const string ASTERISK = "*";
-  const string SLASH = "/";
-  const string LT = "<";
-  const string GT = ">";
-  const string EQ = "==";
-  const string NOT_EQ = "!=";
+  const TokenType ASSIGN = "=";
+  const TokenType PLUS = "+";
+  const TokenType MINUS = "-";
+  const TokenType BANG = "!";
+  const TokenType ASTERISK = "*";
+  const TokenType SLASH = "/";
+  const TokenType LT = "<";
+  const TokenType GT = ">";
+  const TokenType EQ = "==";
+  const TokenType NOT_EQ = "!=";
 
   // Delimiters
-  const string COMMA = ",";
-  const string SEMICOLON = ";";
-  const string COLON = ":";
-  const string LPAREN = "(";
-  const string RPAREN = ")";
-  const string LBRACE = "{";
-  const string RBRACE = "}";
-  const string LBRACKET = "{";
-  const string RBRACKET = "}";
+  const TokenType COMMA = ",";
+  const TokenType SEMICOLON = ";";
+  const TokenType COLON = ":";
+  const TokenType LPAREN = "(";
+  const TokenType RPAREN = ")";
+  const TokenType LBRACE = "{";
+  const TokenType RBRACE = "}";
+  const TokenType LBRACKET = "{";
+  const TokenType RBRACKET = "}";
 
   // Keywords
-  const string FUNCTION = "FUNCTION";
-  const string LET = "LET";
-  const string TRUET = "TRUE";
-  const string FALSET = "FALSE";
-  const string IF = "IF";
-  const string ELSE = "ELSE";
-  const string RETURN = "RETURN";
+  const TokenType FUNCTION = "FUNCTION";
+  const TokenType LET = "LET";
+  const TokenType TRUET = "TRUE";
+  const TokenType FALSET = "FALSE";
+  const TokenType IF = "IF";
+  const TokenType ELSE = "ELSE";
+  const TokenType RETURN = "RETURN";
 
-  map<string, string> token_type = {
+  map<TokenLiteral, TokenType> token_type = {
     { "fn", FUNCTION },
     { "let", LET },
     { "true", TRUET },
@@ -62,7 +65,7 @@ namespace token {
     { "return", RETURN }
   };
 
-  auto lookup_indent_type(string ident) -> string {
+  auto lookup_indent_type(TokenLiteral ident) -> TokenType {
     auto ident_type = token_type[ident];
     if (ident_type == "") {
       return IDENT;

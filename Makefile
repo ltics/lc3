@@ -5,7 +5,7 @@ TEST=test
 
 .PHONY: test clean all
 
-all: test main
+all: token.o lexer.o ast.o repl.o parser.o main.o test main
 
 token.o:
 	$(CC) $(FLAG) -c ./src/token.hpp

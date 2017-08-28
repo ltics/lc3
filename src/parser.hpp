@@ -13,6 +13,30 @@ namespace parser {
   typedef std::function<ast::Expression()> prefix_parse_fn;
   typedef std::function<ast::Expression(ast::Expression)> infix_parse_fn;
 
+  enum class Precedence : size_t {
+      LOWEST
+    , EQUALS      // ==
+    , LESSGREATER // > or <
+    , SUMMINUS    // + or -
+    , MULDIV      // * or /
+    , PREFIX      // -x or !x
+    , APPLY       // func(x)
+    , INDEX       // arr[i]
+  };
+
+  map<token::TokenType, Precedence> precedences = {
+    { token::EQ, Precedence::EQUALS },
+    { token::NOT_EQ, Precedence::EQUALS },
+    { token::LT, Precedence::LESSGREATER },
+    { token::GT, Precedence::LESSGREATER },
+    { token::PLUS, Precedence::SUMMINUS },
+    { token::MINUS, Precedence::SUMMINUS },
+    { token::SLASH, Precedence::MULDIV },
+    { token::ASTERISK, Precedence::MULDIV },
+    { token::LPAREN, Precedence::APPLY },
+    { token::LBRACKET, Precedence::INDEX }
+  };
+
   class Parser {
   private:
     shared_ptr<lexer::Lexer> lexer;
@@ -36,6 +60,9 @@ namespace parser {
 
   Parser::Parser(shared_ptr<lexer::Lexer> l) {
     this->lexer = l;
+    this->errors = {};
+    this->prefix_parse_fns = {};
+    this->infix_parse_fns = {};
   }
 
   auto Parser::new_parser(shared_ptr<lexer::Lexer> l) -> shared_ptr<Parser> {
@@ -52,5 +79,13 @@ namespace parser {
 
   auto Parser::parse_program() -> shared_ptr<ast::Program> {
     return nullptr;
+  }
+
+  auto Parser::register_prefix(token::TokenType tt, prefix_parse_fn f) -> void {
+    this->prefix_parse_fns[tt] = f;
+  }
+
+  auto Parser::register_infix(token::TokenType tt, infix_parse_fn f) -> void {
+    this->infix_parse_fns[tt] = f;
   }
 }

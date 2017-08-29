@@ -2,13 +2,16 @@
 #include <memory>
 #include <vector>
 #include <algorithm>
+#include <range/v3/all.hpp>
 
 using namespace std;
+using namespace ranges;
 
 namespace ast {
   class Node {
   protected:
     token::Token token;
+
   public:
     Node() {
       token = {"empty", "empty"};
@@ -63,7 +66,7 @@ namespace ast {
 
     string to_string() {
       string s("");
-      for_each(statements.cbegin(), statements.cend(), [&](Statement stm) {
+      std::for_each(statements.cbegin(), statements.cend(), [&](Statement stm) {
           s += stm.to_string();
         });
       return s;
@@ -83,6 +86,102 @@ namespace ast {
 
     string to_string() {
       return this->value;
+    }
+  };
+
+  class Boolean : public Expression {
+  private:
+    bool value;
+
+  public:
+    Boolean(token::Token t, bool v): Expression(t), value(v) {};
+
+    string token_literal() {
+      return this->token.literal;
+    }
+
+    string to_string() {
+      return this->token_literal();
+    }
+  };
+
+  class IntegerLiteral : public Expression {
+  private:
+    int value;
+
+  public:
+    IntegerLiteral(token::Token t, int v): Expression(t), value(v) {};
+
+    string token_literal() {
+      return this->token.literal;
+    }
+
+    string to_string() {
+      return this->token_literal();
+    }
+  };
+
+  class StringLiteral : public Expression {
+  private:
+    string value;
+
+  public:
+    StringLiteral(token::Token t, string v): Expression(t), value(v) {};
+
+    string token_literal() {
+      return this->token.literal;
+    }
+
+    string to_string() {
+      return this->token_literal();
+    }
+  };
+
+  class PrefixExpression : public Expression {
+  private:
+    string prefix_operator;
+    shared_ptr<Expression> right;
+
+  public:
+    PrefixExpression(token::Token t, string o, shared_ptr<Expression> r): Expression(t), prefix_operator(o), right(r) {};
+
+    string token_literal() {
+      return this->token.literal;
+    }
+
+    string to_string() {
+      string s("");
+      s += "(";
+      s += this->prefix_operator;
+      s += this->right->to_string();
+      s += ")";
+      return s;
+    }
+  };
+
+  class InfixExpression : public Expression {
+  private:
+    shared_ptr<Expression> left;
+    string prefix_operator;
+    shared_ptr<Expression> right;
+
+  public:
+    InfixExpression(token::Token t, shared_ptr<Expression> l, string o, shared_ptr<Expression> r): Expression(t), left(l), prefix_operator(o), right(r) {};
+
+    string token_literal() {
+      return this->token.literal;
+    }
+
+    string to_string() {
+      string s("");
+      s += "(";
+      s += this->left->to_string();
+      s += " ";
+      s += this->prefix_operator;
+      s += " ";
+      s += this->right->to_string();
+      s += ")";
+      return s;
     }
   };
 
@@ -168,9 +267,163 @@ namespace ast {
 
     string to_string() {
       string s("");
-      for_each(statements.cbegin(), statements.cend(), [&](Statement stm) {
+      std::for_each(statements.cbegin(), statements.cend(), [&](Statement stm) {
           s += stm.to_string();
         });
+      return s;
+    }
+  };
+
+  class IfExpression : public Expression {
+  private:
+    shared_ptr<Expression> condition;
+    shared_ptr<BlockStatement> consequence;
+    shared_ptr<BlockStatement> alternative;
+
+  public:
+    IfExpression(token::Token t, shared_ptr<Expression> cond, shared_ptr<BlockStatement> cons, shared_ptr<BlockStatement> alt): Expression(t), condition(cond), consequence(cons), alternative(alt) {};
+
+    string token_literal() {
+      return this->token.literal;
+    }
+
+    string to_string() {
+      string s("");
+      s += "if";
+      s += this->condition->to_string();
+      s += " ";
+      s += this->consequence->to_string();
+      if (this->alternative != nullptr) {
+        s += "else";
+        s += " ";
+        s += this->alternative->to_string();
+      }
+      return s;
+    }
+  };
+
+  class FunctionLiteral : public Expression {
+  private:
+    vector<Identifier> parameters;
+    shared_ptr<BlockStatement> body;
+
+  public:
+    FunctionLiteral(token::Token t, vector<Identifier> ps, shared_ptr<BlockStatement> b): Expression(t), parameters(ps), body(b) {};
+
+    string token_literal() {
+      return this->token.literal;
+    }
+
+    string to_string() {
+      string s("");
+
+      vector<string> literals = parameters | view::transform([](auto p) { return p.to_string(); });
+      string literal = literals | view::join(',');
+
+      s += this->token_literal();
+      s += "(";
+      s += literal;
+      s += ")";
+      s += " ";
+      s += this->body->to_string();
+      return s;
+    }
+  };
+
+  class CallExpression : public Expression {
+  private:
+    shared_ptr<Expression> function;
+    vector<shared_ptr<Expression>> arguments;
+
+  public:
+    CallExpression(token::Token t, shared_ptr<Expression> f, vector<shared_ptr<Expression>> args): Expression(t), function(f), arguments(args) {};
+
+    string token_literal() {
+      return this->token.literal;
+    }
+
+    string to_string() {
+      string s("");
+
+      vector<string> literals = arguments | view::transform([](auto a) { return a->to_string(); });
+      string literal = literals | view::join(',');
+
+      s += this->function->to_string();
+      s += "(";
+      s += literal;
+      s += ")";
+      return s;
+    }
+  };
+
+  class ArrayLiteral : public Expression {
+  private:
+    vector<shared_ptr<Expression>> elements;
+
+  public:
+    ArrayLiteral(token::Token t, vector<shared_ptr<Expression>> elems): Expression(t), elements(elems) {};
+
+    string token_literal() {
+      return this->token.literal;
+    }
+
+    string to_string() {
+      string s("");
+
+      vector<string> literals = elements | view::transform([](auto e) { return e->to_string(); });
+      string literal = literals | view::join(',');
+
+      s += "[";
+      s += literal;
+      s += "]";
+      return s;
+    }
+  };
+
+  class IndexExpression : public Expression {
+  private:
+    shared_ptr<Expression> left;
+    shared_ptr<Expression> index;
+
+  public:
+    IndexExpression(token::Token t, shared_ptr<Expression> l, shared_ptr<Expression> i): Expression(t), left(l), index(i) {};
+
+    string token_literal() {
+      return this->token.literal;
+    }
+
+    string to_string() {
+      string s("");
+
+      s += "(";
+      s += this->left->to_string();
+      s += "[";
+      s += this->index->to_string();
+      s += "]";
+      return s;
+    }
+  };
+
+  class HashLiteral : public Expression {
+  private:
+    map<shared_ptr<Expression>, shared_ptr<Expression>> pairs;
+
+  public:
+    HashLiteral(token::Token t, map<shared_ptr<Expression>, shared_ptr<Expression>> ps): Expression(t), pairs(ps) {};
+
+    string token_literal() {
+      return this->token.literal;
+    }
+
+    string to_string() {
+      string s("");
+
+      vector<string> literals = pairs | view::transform([](pair<shared_ptr<Expression>, shared_ptr<Expression>> const &p) { return p.first->to_string() + ":" + p.second->to_string() ; });
+      string literal = literals | view::join(',');
+
+      s += "{";
+      s += literal;
+      s += "}";
       return s;
     }
   };

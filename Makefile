@@ -1,5 +1,5 @@
 CC=c++
-FLAG=-Wall -std=c++14
+FLAG=-Wall -std=c++14 -I./include/range-v3/include
 MAIN=main
 TEST=test
 

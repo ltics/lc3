@@ -256,10 +256,10 @@ namespace ast {
 
   class BlockStatement : public Statement {
   private:
-    vector<Statement> statements;
+    vector<shared_ptr<Statement>> statements;
 
   public:
-    BlockStatement(token::Token t, vector<Statement> stms): Statement(t), statements(stms) {};
+    BlockStatement(token::Token t, vector<shared_ptr<Statement>> stms): Statement(t), statements(stms) {};
 
     string token_literal() {
       return this->token.literal;
@@ -267,8 +267,8 @@ namespace ast {
 
     string to_string() {
       string s("");
-      std::for_each(statements.cbegin(), statements.cend(), [&](Statement stm) {
-          s += stm.to_string();
+      std::for_each(statements.cbegin(), statements.cend(), [&](shared_ptr<Statement> stm) {
+          s += stm->to_string();
         });
       return s;
     }
@@ -304,11 +304,11 @@ namespace ast {
 
   class FunctionLiteral : public Expression {
   private:
-    vector<Identifier> parameters;
+    vector<shared_ptr<Identifier>> parameters;
     shared_ptr<BlockStatement> body;
 
   public:
-    FunctionLiteral(token::Token t, vector<Identifier> ps, shared_ptr<BlockStatement> b): Expression(t), parameters(ps), body(b) {};
+    FunctionLiteral(token::Token t, vector<shared_ptr<Identifier>> ps, shared_ptr<BlockStatement> b): Expression(t), parameters(ps), body(b) {};
 
     string token_literal() {
       return this->token.literal;
@@ -317,7 +317,7 @@ namespace ast {
     string to_string() {
       string s("");
 
-      vector<string> literals = parameters | view::transform([](auto p) { return p.to_string(); });
+      vector<string> literals = parameters | view::transform([](auto p) { return p->to_string(); });
       string literal = literals | view::join(',');
 
       s += this->token_literal();

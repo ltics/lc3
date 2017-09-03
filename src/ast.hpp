@@ -51,14 +51,14 @@ namespace ast {
 
   class Program : public Node {
   private:
-    vector<Statement> statements = {};
+    vector<shared_ptr<Statement>> statements = {};
 
   public:
-    Program(vector<Statement> stms): statements(stms) {};
+    Program(vector<shared_ptr<Statement>> stms): statements(stms) {};
 
     string token_literal() {
       if (this->statements.size() > 0) {
-        return this->statements[0].token_literal();
+        return this->statements[0]->token_literal();
       } else {
         return "empty program";
       }
@@ -66,8 +66,8 @@ namespace ast {
 
     string to_string() {
       string s("");
-      std::for_each(statements.cbegin(), statements.cend(), [&](Statement stm) {
-          s += stm.to_string();
+      std::for_each(statements.cbegin(), statements.cend(), [&](shared_ptr<Statement> stm) {
+          s += stm->to_string();
         });
       return s;
     }

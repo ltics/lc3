@@ -31,6 +31,7 @@ main: main.o
 test:
 	$(CC) $(FLAG) ./test/token_test.cc && ./a.out
 	$(CC) $(FLAG) ./test/lexer_test.cc && ./a.out
+	$(CC) $(FLAG) ./test/ast_test.cc && ./a.out
 
 clean:
 	rm *.o *.out $(MAIN)

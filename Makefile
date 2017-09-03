@@ -5,6 +5,8 @@ TEST=test
 
 .PHONY: test clean all
 
+build: token.o lexer.o ast.o repl.o parser.o main.o main
+
 all: token.o lexer.o ast.o repl.o parser.o main.o test main
 
 token.o:
@@ -32,6 +34,7 @@ test:
 	$(CC) $(FLAG) ./test/token_test.cc && ./a.out
 	$(CC) $(FLAG) ./test/lexer_test.cc && ./a.out
 	$(CC) $(FLAG) ./test/ast_test.cc && ./a.out
+	$(CC) $(FLAG) ./test/parser_test.cc && ./a.out
 
 clean:
 	rm *.o *.out $(MAIN)

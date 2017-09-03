@@ -181,31 +181,80 @@ namespace parser {
   }
 
   auto Parser::peek_precedence() -> Precedence {
-    return Precedence::LOWEST;
+    return precedences[this->peek_token.type];
   }
 
   auto Parser::current_precedence() -> Precedence {
-    return Precedence::LOWEST;
+    return precedences[this->current_token.type];
   }
 
   auto Parser::parse_program() -> shared_ptr<ast::Program> {
-    return nullptr;
+    vector<shared_ptr<ast::Statement>> statements = {};
+    while(!this->current_token_is(token::EOFT)) {
+      auto stmt = this->parse_statement();
+      if (stmt != nullptr) {
+        statements.push_back(stmt);
+      }
+      this->next_token();
+    }
+    return shared_ptr<ast::Program>(new ast::Program(statements));
   }
 
   auto Parser::parse_statement() -> shared_ptr<ast::Statement> {
-    return nullptr;
+    auto tt = this->current_token.type;
+    if (tt == token::LET) {
+      return this->parse_let_statement();
+    } else if (tt == token::RETURN) {
+      return this->parse_return_statement();
+    } else {
+      return this->parse_expression_statement();
+    }
   }
 
   auto Parser::parse_let_statement() -> shared_ptr<ast::LetStatement> {
-    return nullptr;
+    auto current_token = this->current_token;
+
+    if (!this->expect_peek(token::IDENT)) {
+      return nullptr;
+    }
+
+    auto name = shared_ptr<ast::Identifier>(new ast::Identifier(this->current_token, this->current_token.literal));
+
+    if (!this->expect_peek(token::ASSIGN)) {
+      return nullptr;
+    }
+
+    this->next_token();
+    auto value = this->parse_expression(Precedence::LOWEST);
+
+    if (this->peek_token_is(token::SEMICOLON)) {
+      this->next_token();
+    }
+
+    return shared_ptr<ast::LetStatement>(new ast::LetStatement(current_token, name, value));
   }
 
   auto Parser::parse_return_statement() -> shared_ptr<ast::ReturnStatement> {
-    return nullptr;
+    auto current_token = this->current_token;
+    this->next_token();
+    auto value = this->parse_expression(Precedence::LOWEST);
+
+    if (this->peek_token_is(token::SEMICOLON)) {
+      this->next_token();
+    }
+
+    return shared_ptr<ast::ReturnStatement>(new ast::ReturnStatement(current_token, value));
   }
 
   auto Parser::parse_expression_statement() -> shared_ptr<ast::ExpressionStatement> {
-    return nullptr;
+    auto current_token = this->current_token;
+    auto expr = this->parse_expression(Precedence::LOWEST);
+
+    if (this->peek_token_is(token::SEMICOLON)) {
+      this->next_token();
+    }
+
+    return shared_ptr<ast::ExpressionStatement>(new ast::ExpressionStatement(current_token, expr));
   }
 
   auto Parser::parse_expression(Precedence prec) -> shared_ptr<ast::Expression> {
@@ -229,6 +278,10 @@ namespace parser {
   }
 
   auto Parser::parse_infix_expression(shared_ptr<ast::Expression> left) -> shared_ptr<ast::Expression> {
+    return nullptr;
+  }
+
+  auto Parser::parse_boolean() -> shared_ptr<ast::Expression> {
     return nullptr;
   }
 

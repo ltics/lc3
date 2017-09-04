@@ -8,7 +8,7 @@
 using namespace std;
 using namespace ast;
 
-TEST_CASE("binary_search") {
+TEST_CASE("ast test") {
   shared_ptr<Identifier> lvar = shared_ptr<Identifier>(new Identifier({ token::IDENT, "myVar" }, "lvar"));
   shared_ptr<Identifier> rvar = shared_ptr<Identifier>(new Identifier({ token::IDENT, "anotherVar"}, "rvar"));
   shared_ptr<LetStatement> let = shared_ptr<LetStatement>(new LetStatement({ token::LET, "let" }, lvar, rvar));

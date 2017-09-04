@@ -8,7 +8,7 @@
 using namespace std;
 using namespace ranges;
 
-TEST_CASE("binary_search") {
+TEST_CASE("token test") {
   vector<string> ss = {"1", "2", "3"};
   string s = ss | view::join(',');
 

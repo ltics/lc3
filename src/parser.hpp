@@ -50,6 +50,8 @@ namespace parser {
   public:
     Parser(shared_ptr<lexer::Lexer> l);
 
+    auto get_prefix_parse_fns() -> map<token::TokenType, prefix_parse_fn>;
+    auto get_infix_parse_fns() -> map<token::TokenType, infix_parse_fn>;
     auto next_token() -> void;
     auto current_token_is(token:: TokenType tt) -> bool;
     auto peek_token_is(token::TokenType tt) -> bool;
@@ -125,6 +127,14 @@ namespace parser {
     p->next_token();
     p->next_token();
     return p;
+  }
+
+  auto Parser::get_prefix_parse_fns() -> map<token::TokenType, prefix_parse_fn> {
+    return this->prefix_parse_fns;
+  }
+
+  auto Parser::get_infix_parse_fns() -> map<token::TokenType, infix_parse_fn> {
+    return this->infix_parse_fns;
   }
 
   auto Parser::next_token() -> void {
@@ -258,11 +268,29 @@ namespace parser {
   }
 
   auto Parser::parse_expression(Precedence prec) -> shared_ptr<ast::Expression> {
-    return nullptr;
+    auto prefix_fn = this->prefix_parse_fns[this->current_token.type];
+    if (prefix_fn == nullptr) {
+      this->no_prefix_parse_fn_error(this->current_token.type);
+      return nullptr;
+    }
+
+    auto left_expr = prefix_fn();
+
+    while (!this->peek_token_is(token::SEMICOLON) && prec < this->peek_precedence()) {
+      auto infix_fn = this->infix_parse_fns[this->peek_token.type];
+      if (infix_fn == nullptr) {
+        return nullptr;
+      }
+
+      this->next_token();
+
+      left_expr = infix_fn(left_expr);
+    }
+    return left_expr;
   }
 
   auto Parser::parse_identifier() -> shared_ptr<ast::Expression> {
-    return nullptr;
+    return shared_ptr<ast::Identifier>(new ast::Identifier(this->current_token, this->current_token.literal));
   }
 
   auto Parser::parse_integer_literal() -> shared_ptr<ast::Expression> {

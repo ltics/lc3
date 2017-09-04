@@ -9,7 +9,7 @@
 
 using namespace std;
 
-TEST_CASE("binary_search") {
+TEST_CASE("lexer test") {
   vector<string> inputs = {
     "let five = 5;\n",
     "let ten = 10;\n",

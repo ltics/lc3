@@ -11,7 +11,13 @@ using namespace token;
 using namespace lexer;
 using namespace parser;
 
-TEST_CASE("binary_search") {
+TEST_CASE("parser test") {
+  REQUIRE(Precedence::EQUALS > Precedence::LOWEST);
   REQUIRE(precedences[EQ] == Precedence::EQUALS);
   REQUIRE(precedences["cleantha"] == Precedence::LOWEST);
+
+  auto l = Lexer::new_lexer("");
+  auto p = Parser::new_parser(l);
+  REQUIRE(p->get_prefix_parse_fns()["cleantha"] == nullptr);
+  REQUIRE(p->get_infix_parse_fns()[LBRACE] != nullptr);
 }

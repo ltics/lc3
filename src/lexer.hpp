@@ -191,7 +191,7 @@ namespace lexer {
   }
 
   auto Lexer::new_lexer(string input) -> shared_ptr<Lexer> {
-    shared_ptr<Lexer> l = shared_ptr<Lexer>(new Lexer(input));
+    shared_ptr<Lexer> l = make_shared<Lexer>(input);
     l->read_char();
     return l;
   };

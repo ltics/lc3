@@ -123,7 +123,7 @@ namespace parser {
   }
 
   auto Parser::new_parser(shared_ptr<lexer::Lexer> l) -> shared_ptr<Parser> {
-    shared_ptr<Parser> p = shared_ptr<Parser>(new Parser(l));
+    shared_ptr<Parser> p = make_shared<Parser>(l);
     p->next_token();
     p->next_token();
     return p;
@@ -207,7 +207,7 @@ namespace parser {
       }
       this->next_token();
     }
-    return shared_ptr<ast::Program>(new ast::Program(statements));
+    return make_shared<ast::Program>(statements);
   }
 
   auto Parser::parse_statement() -> shared_ptr<ast::Statement> {
@@ -228,7 +228,7 @@ namespace parser {
       return nullptr;
     }
 
-    auto name = shared_ptr<ast::Identifier>(new ast::Identifier(this->current_token, this->current_token.literal));
+    auto name = make_shared<ast::Identifier>(this->current_token, this->current_token.literal);
 
     if (!this->expect_peek(token::ASSIGN)) {
       return nullptr;
@@ -241,7 +241,7 @@ namespace parser {
       this->next_token();
     }
 
-    return shared_ptr<ast::LetStatement>(new ast::LetStatement(current_token, name, value));
+    return make_shared<ast::LetStatement>(current_token, name, value);
   }
 
   auto Parser::parse_return_statement() -> shared_ptr<ast::ReturnStatement> {
@@ -253,7 +253,7 @@ namespace parser {
       this->next_token();
     }
 
-    return shared_ptr<ast::ReturnStatement>(new ast::ReturnStatement(current_token, value));
+    return make_shared<ast::ReturnStatement>(current_token, value);
   }
 
   auto Parser::parse_expression_statement() -> shared_ptr<ast::ExpressionStatement> {
@@ -264,7 +264,7 @@ namespace parser {
       this->next_token();
     }
 
-    return shared_ptr<ast::ExpressionStatement>(new ast::ExpressionStatement(current_token, expr));
+    return make_shared<ast::ExpressionStatement>(current_token, expr);
   }
 
   auto Parser::parse_expression(Precedence prec) -> shared_ptr<ast::Expression> {
@@ -290,7 +290,7 @@ namespace parser {
   }
 
   auto Parser::parse_identifier() -> shared_ptr<ast::Expression> {
-    return shared_ptr<ast::Identifier>(new ast::Identifier(this->current_token, this->current_token.literal));
+    return make_shared<ast::Identifier>(this->current_token, this->current_token.literal);
   }
 
   auto Parser::parse_integer_literal() -> shared_ptr<ast::Expression> {

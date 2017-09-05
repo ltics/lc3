@@ -294,39 +294,130 @@ namespace parser {
   }
 
   auto Parser::parse_integer_literal() -> shared_ptr<ast::Expression> {
-    return nullptr;
+    auto current_token = this->current_token;
+
+    int value;
+    try {
+      value = stoi(this->current_token.literal);
+    } catch (const std::exception& e) {
+      string msg("");
+      msg += "could not parse ";
+      msg += this->current_token.literal;
+      msg += " as integer";
+      this->errors.push_back(msg);
+      return nullptr;
+    }
+
+    return make_shared<ast::IntegerLiteral>(current_token, value);
   }
 
   auto Parser::parse_string_literal() -> shared_ptr<ast::Expression> {
-    return nullptr;
+    return make_shared<ast::StringLiteral>(this->current_token, this->current_token.literal);
   }
 
   auto Parser::parse_prefix_expression() -> shared_ptr<ast::Expression> {
-    return nullptr;
+    auto current_token = this->current_token;
+
+    this->next_token();
+    auto right = this->parse_expression(Precedence::PREFIX);
+
+    return make_shared<ast::PrefixExpression>(current_token, current_token.literal, right);
   }
 
   auto Parser::parse_infix_expression(shared_ptr<ast::Expression> left) -> shared_ptr<ast::Expression> {
-    return nullptr;
+    auto current_token = this->current_token;
+
+    auto prec = this->current_precedence();
+    this->next_token();
+    auto right = this->parse_expression(prec);
+
+    return make_shared<ast::InfixExpression>(current_token, left, current_token.literal, right);
   }
 
   auto Parser::parse_boolean() -> shared_ptr<ast::Expression> {
-    return nullptr;
+    return make_shared<ast::Boolean>(this->current_token, this->current_token_is(token::TRUET));
   }
 
   auto Parser::parse_grouped_expression() -> shared_ptr<ast::Expression> {
-    return nullptr;
+    this->next_token();
+
+    auto expr = this->parse_expression(Precedence::LOWEST);
+
+    if (this->expect_peek(token::RPAREN)) {
+      return nullptr;
+    }
+
+    return expr;
   }
 
   auto Parser::parse_if_expression() -> shared_ptr<ast::Expression> {
-    return nullptr;
+    auto current_token = this->current_token;
+
+    if (!this->expect_peek(token::LPAREN)) {
+      return nullptr;
+    }
+
+    this->next_token();
+
+    auto condition = this->parse_expression(Precedence::LOWEST);
+
+    if (!this->expect_peek(token::RPAREN)) {
+      return nullptr;
+    }
+
+    if (!this->expect_peek(token::LBRACE)) {
+      return nullptr;
+    }
+
+    auto consequence = this->parse_block_statement();
+    shared_ptr<ast::BlockStatement> alternative = nullptr;
+
+    if (this->peek_token_is(token::ELSE)) {
+      this->next_token();
+
+      if (!this->expect_peek(token::LBRACE)) {
+        return nullptr;
+      }
+
+      alternative = this->parse_block_statement();
+    }
+
+    return make_shared<ast::IfExpression>(current_token, condition, consequence, alternative);
   }
 
   auto Parser::parse_block_statement() -> shared_ptr<ast::BlockStatement> {
-    return nullptr;
+    auto current_token = this->current_token;
+
+    vector<shared_ptr<ast::Statement>> statements = {};
+    this->next_token();
+
+    while (!this->current_token_is(token::RBRACE) && !this->current_token_is(token::EOFT)) {
+      auto stmt = this->parse_statement();
+      if (stmt != nullptr) {
+        statements.push_back(stmt);
+      }
+      this->next_token();
+    }
+
+    return make_shared<ast::BlockStatement>(current_token, statements);
   }
 
   auto Parser::parse_function_literal() -> shared_ptr<ast::Expression> {
-    return nullptr;
+    auto current_token = this->current_token;
+
+    if (!this->expect_peek(token::LPAREN)) {
+      return nullptr;
+    }
+
+    auto parameters = this->parse_function_parameters();
+
+    if (!this->expect_peek(token::LBRACE)) {
+      return nullptr;
+    }
+
+    auto body = this->parse_block_statement();
+
+    return make_shared<ast::FunctionLiteral>(current_token, parameters, body);
   }
 
   auto Parser::parse_function_parameters() -> vector<shared_ptr<ast::Identifier>> {
@@ -334,7 +425,9 @@ namespace parser {
   }
 
   auto Parser::parse_call_expression(shared_ptr<ast::Expression> func) -> shared_ptr<ast::Expression> {
-    return nullptr;
+    auto current_token = this->current_token;
+    auto arguments = this->parse_expression_list(token::RPAREN);
+    return make_shared<ast::CallExpression>(current_token, func, arguments);
   }
 
   auto Parser::parse_expression_list(token::TokenType end) -> vector<shared_ptr<ast::Expression>> {

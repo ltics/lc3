@@ -421,7 +421,30 @@ namespace parser {
   }
 
   auto Parser::parse_function_parameters() -> vector<shared_ptr<ast::Identifier>> {
-    return {};
+    vector<shared_ptr<ast::Identifier>> identifiers = {};
+
+    if (this->peek_token_is(token::RPAREN)) {
+      this->next_token();
+      return identifiers;
+    }
+
+    this->next_token();
+
+    auto ident = make_shared<ast::Identifier>(this->current_token, this->current_token.literal);
+    identifiers.push_back(ident);
+
+    while (this->peek_token_is(token::COMMA)) {
+      this->next_token();
+      this->next_token();
+      auto ident = make_shared<ast::Identifier>(this->current_token, this->current_token.literal);
+      identifiers.push_back(ident);
+    }
+
+    if (!this->expect_peek(token::RPAREN)) {
+      return {};
+    }
+
+    return identifiers;
   }
 
   auto Parser::parse_call_expression(shared_ptr<ast::Expression> func) -> shared_ptr<ast::Expression> {
@@ -431,18 +454,73 @@ namespace parser {
   }
 
   auto Parser::parse_expression_list(token::TokenType end) -> vector<shared_ptr<ast::Expression>> {
-    return {};
+    vector<shared_ptr<ast::Expression>> list = {};
+
+    if (this->peek_token_is(end)) {
+      this->next_token();
+      return list;
+    }
+
+    this->next_token();
+    list.push_back(this->parse_expression(Precedence::LOWEST));
+
+    while (this->peek_token_is(token::COMMA)) {
+      this->next_token();
+      this->next_token();
+      list.push_back(this->parse_expression(Precedence::LOWEST));
+    }
+
+    if (!this->expect_peek(end)) {
+      return {};
+    }
+
+    return list;
   }
 
   auto Parser::parse_array_literal() -> shared_ptr<ast::Expression> {
-    return nullptr;
+    auto current_token = this->current_token;
+    auto elements = this->parse_expression_list(token::RBRACKET);
+    return make_shared<ast::ArrayLiteral>(current_token, elements);
   }
 
   auto Parser::parse_index_expression(shared_ptr<ast::Expression> left) -> shared_ptr<ast::Expression> {
-    return nullptr;
+    auto current_token = this->current_token;
+    this->next_token();
+    auto index = this->parse_expression(Precedence::LOWEST);
+
+    if (!this->expect_peek(token::RBRACKET)) {
+      return nullptr;
+    }
+
+    return make_shared<ast::IndexExpression>(current_token, left, index);
   }
 
   auto Parser::parse_hash_literal() -> shared_ptr<ast::Expression> {
-    return nullptr;
+    auto current_token = this->current_token;
+    map<shared_ptr<ast::Expression>, shared_ptr<ast::Expression>> pairs = {};
+
+    while (!this->peek_token_is(token::RBRACE)) {
+      this->next_token();
+      auto key = this->parse_expression(Precedence::LOWEST);
+
+      if (!this->expect_peek(token::COLON)) {
+        return nullptr;
+      }
+
+      this->next_token();
+      auto value = this->parse_expression(Precedence::LOWEST);
+
+      pairs[key] = value;
+
+      if (!this->peek_token_is(token::RBRACE) && !this->expect_peek(token::COMMA)) {
+        return nullptr;
+      }
+    }
+
+    if (!this->expect_peek(token::RBRACE)) {
+      return nullptr;
+    }
+
+    return make_shared<ast::HashLiteral>(current_token, pairs);
   }
 }

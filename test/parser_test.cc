@@ -3,6 +3,7 @@
 #include "../src/token.hpp"
 #include "../src/lexer.hpp"
 #include "../src/parser.hpp"
+#include <iostream>
 #include <vector>
 #include <string>
 
@@ -10,6 +11,19 @@ using namespace std;
 using namespace token;
 using namespace lexer;
 using namespace parser;
+
+auto check_parse_errors(shared_ptr<Parser> p) -> void {
+  auto errors = p->get_errors();
+  if (errors.size() == 0) {
+    return;
+  }
+
+  cout << "parser has " << errors.size() << " errors" << endl;
+  std::for_each(errors.cbegin(), errors.cend(), [](string error) -> void {
+      cout << "parser error: " << error << endl;
+    });
+  return;
+}
 
 TEST_CASE("parser test") {
   REQUIRE(Precedence::EQUALS > Precedence::LOWEST);

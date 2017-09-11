@@ -140,18 +140,34 @@ TEST_CASE("test parse return statements") {
 }
 
 TEST_CASE("test parse identifier") {
-  auto input = "foobar;";
+  struct TestCase {
+    string input;
+    TestVariant expected_value;
+  };
+
+  TestVariant v_int = TestVariant(5);
+  TestVariant v_bool_true = TestVariant(true);
+  TestVariant v_bool_false = TestVariant(false);
   string s("foobar");
-  TestVariant expected = TestVariant(s);
+  TestVariant v_str = TestVariant(s);
 
-  auto lexer = Lexer::new_lexer(input);
-  auto parser = Parser::new_parser(lexer);
+  vector<TestCase> tests = {
+    TestCase{ "5;", v_int },
+    TestCase{ "true;", v_bool_true },
+    TestCase{ "false;", v_bool_false },
+    TestCase{ "foobar;", v_str }
+  };
 
-  auto program = parser->parse_program();
-  check_parse_errors(parser);
+  std::for_each(tests.cbegin(), tests.cend(), [](TestCase c) {
+      auto lexer = Lexer::new_lexer(c.input);
+      auto parser = Parser::new_parser(lexer);
 
-  REQUIRE(program->statements.size() == 1);
+      auto program = parser->parse_program();
+      check_parse_errors(parser);
 
-  shared_ptr<ExpressionStatement> stmt = static_pointer_cast<ExpressionStatement>(program->statements[0]);
-  REQUIRE(test_identifier(stmt->expression, expected));
+      REQUIRE(program->statements.size() == 1);
+
+      shared_ptr<ExpressionStatement> stmt = static_pointer_cast<ExpressionStatement>(program->statements[0]);
+      REQUIRE(test_literal_expression(stmt->expression, c.expected_value));
+    });
 }

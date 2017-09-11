@@ -1,3 +1,5 @@
+#pragma once
+
 #include "token.hpp"
 #include <memory>
 #include <vector>
@@ -50,10 +52,8 @@ namespace ast {
   };
 
   class Program : public Node {
-  private:
-    vector<shared_ptr<Statement>> statements = {};
-
   public:
+    vector<shared_ptr<Statement>> statements = {};
     Program(vector<shared_ptr<Statement>> stms): statements(stms) {};
 
     string token_literal() {
@@ -74,10 +74,9 @@ namespace ast {
   };
 
   class Identifier : public Expression {
-  private:
+  public:
     string value;
 
-  public:
     Identifier(token::Token t, string v): Expression(t), value(v) {};
 
     string token_literal() {
@@ -90,11 +89,14 @@ namespace ast {
   };
 
   class Boolean : public Expression {
-  private:
+  public:
     bool value;
 
-  public:
     Boolean(token::Token t, bool v): Expression(t), value(v) {};
+
+    auto get_value() -> bool {
+      return this->value;
+    }
 
     string token_literal() {
       return this->token.literal;
@@ -106,10 +108,9 @@ namespace ast {
   };
 
   class IntegerLiteral : public Expression {
-  private:
+  public:
     int value;
 
-  public:
     IntegerLiteral(token::Token t, int v): Expression(t), value(v) {};
 
     string token_literal() {
@@ -122,10 +123,9 @@ namespace ast {
   };
 
   class StringLiteral : public Expression {
-  private:
+  public:
     string value;
 
-  public:
     StringLiteral(token::Token t, string v): Expression(t), value(v) {};
 
     string token_literal() {
@@ -138,11 +138,10 @@ namespace ast {
   };
 
   class PrefixExpression : public Expression {
-  private:
+  public:
     string prefix_operator;
     shared_ptr<Expression> right;
 
-  public:
     PrefixExpression(token::Token t, string o, shared_ptr<Expression> r): Expression(t), prefix_operator(o), right(r) {};
 
     string token_literal() {
@@ -160,12 +159,11 @@ namespace ast {
   };
 
   class InfixExpression : public Expression {
-  private:
+  public:
     shared_ptr<Expression> left;
     string prefix_operator;
     shared_ptr<Expression> right;
 
-  public:
     InfixExpression(token::Token t, shared_ptr<Expression> l, string o, shared_ptr<Expression> r): Expression(t), left(l), prefix_operator(o), right(r) {};
 
     string token_literal() {
@@ -186,11 +184,10 @@ namespace ast {
   };
 
   class LetStatement : public Statement {
-  private:
+  public:
     shared_ptr<Identifier> name;
     shared_ptr<Expression> value;
 
-  public:
     LetStatement(token::Token t, shared_ptr<Identifier> n, shared_ptr<Expression> v): Statement(t), name(n), value(v) {};
 
     string token_literal() {
@@ -211,10 +208,9 @@ namespace ast {
   };
 
   class ReturnStatement : public Statement {
-  private:
+  public:
     shared_ptr<Expression> value;
 
-  public:
     ReturnStatement(token::Token t, shared_ptr<Expression> v): Statement(t), value(v) {};
 
     string token_literal() {
@@ -235,10 +231,9 @@ namespace ast {
 
   // Just a statement wrapper for toplevel expressions
   class ExpressionStatement : public Statement {
-  private:
+  public:
     shared_ptr<Expression> expression;
 
-  public:
     ExpressionStatement(token::Token t, shared_ptr<Expression> expr): Statement(t), expression(expr) {};
 
     string token_literal() {
@@ -255,10 +250,9 @@ namespace ast {
   };
 
   class BlockStatement : public Statement {
-  private:
+  public:
     vector<shared_ptr<Statement>> statements;
 
-  public:
     BlockStatement(token::Token t, vector<shared_ptr<Statement>> stms): Statement(t), statements(stms) {};
 
     string token_literal() {
@@ -275,12 +269,11 @@ namespace ast {
   };
 
   class IfExpression : public Expression {
-  private:
+  public:
     shared_ptr<Expression> condition;
     shared_ptr<BlockStatement> consequence;
     shared_ptr<BlockStatement> alternative;
 
-  public:
     IfExpression(token::Token t, shared_ptr<Expression> cond, shared_ptr<BlockStatement> cons, shared_ptr<BlockStatement> alt): Expression(t), condition(cond), consequence(cons), alternative(alt) {};
 
     string token_literal() {
@@ -303,11 +296,10 @@ namespace ast {
   };
 
   class FunctionLiteral : public Expression {
-  private:
+  public:
     vector<shared_ptr<Identifier>> parameters;
     shared_ptr<BlockStatement> body;
 
-  public:
     FunctionLiteral(token::Token t, vector<shared_ptr<Identifier>> ps, shared_ptr<BlockStatement> b): Expression(t), parameters(ps), body(b) {};
 
     string token_literal() {
@@ -331,11 +323,10 @@ namespace ast {
   };
 
   class CallExpression : public Expression {
-  private:
+  public:
     shared_ptr<Expression> function;
     vector<shared_ptr<Expression>> arguments;
 
-  public:
     CallExpression(token::Token t, shared_ptr<Expression> f, vector<shared_ptr<Expression>> args): Expression(t), function(f), arguments(args) {};
 
     string token_literal() {
@@ -357,10 +348,9 @@ namespace ast {
   };
 
   class ArrayLiteral : public Expression {
-  private:
+  public:
     vector<shared_ptr<Expression>> elements;
 
-  public:
     ArrayLiteral(token::Token t, vector<shared_ptr<Expression>> elems): Expression(t), elements(elems) {};
 
     string token_literal() {
@@ -381,11 +371,10 @@ namespace ast {
   };
 
   class IndexExpression : public Expression {
-  private:
+  public:
     shared_ptr<Expression> left;
     shared_ptr<Expression> index;
 
-  public:
     IndexExpression(token::Token t, shared_ptr<Expression> l, shared_ptr<Expression> i): Expression(t), left(l), index(i) {};
 
     string token_literal() {
@@ -405,10 +394,9 @@ namespace ast {
   };
 
   class HashLiteral : public Expression {
-  private:
+  public:
     map<shared_ptr<Expression>, shared_ptr<Expression>> pairs;
 
-  public:
     HashLiteral(token::Token t, map<shared_ptr<Expression>, shared_ptr<Expression>> ps): Expression(t), pairs(ps) {};
 
     string token_literal() {

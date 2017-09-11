@@ -15,7 +15,6 @@ namespace testutil {
       string as_string;
     };
 
-    TestVariant() : type_id{t_int}, as_int{0} {}
     TestVariant(int v) : type_id{t_int}, as_int{v} {}
     TestVariant(bool v) : type_id{t_bool}, as_bool{v} {}
     TestVariant(string v) : type_id{t_string}, as_string{v} {}

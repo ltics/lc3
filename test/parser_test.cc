@@ -29,12 +29,6 @@ auto check_parse_errors(shared_ptr<Parser> p) -> void {
   return;
 }
 
-struct TestCase {
-  string input;
-  string expected_identifier;
-  TestVariant expected_value;
-};
-
 auto test_integer_literal(shared_ptr<Expression> expr, TestVariant value) -> bool {
   shared_ptr<IntegerLiteral> int_expr = static_pointer_cast<IntegerLiteral>(expr);
   return int_expr->value == value.as_int;
@@ -78,6 +72,12 @@ TEST_CASE("test precedence") {
 }
 
 TEST_CASE("test parse let statements") {
+  struct TestCase {
+    string input;
+    string expected_identifier;
+    TestVariant expected_value;
+  };
+
   TestVariant v_int = TestVariant(5);
   TestVariant v_bool = TestVariant(true);
   string s("y");
@@ -89,7 +89,7 @@ TEST_CASE("test parse let statements") {
     TestCase{ "let foobar = y;", "foobar", v_str }
   };
 
-  std::for_each(tests.cbegin(), tests.cend(), [&](TestCase c) {
+  std::for_each(tests.cbegin(), tests.cend(), [](TestCase c) {
       auto lexer = Lexer::new_lexer(c.input);
       auto parser = Parser::new_parser(lexer);
 
@@ -105,3 +105,37 @@ TEST_CASE("test parse let statements") {
       REQUIRE(test_literal_expression(stmt->value, c.expected_value) == true);
     });
 }
+
+TEST_CASE("test parse return statements") {
+  struct TestCase {
+    string input;
+    TestVariant expected_value;
+  };
+
+  TestVariant v_int = TestVariant(5);
+  TestVariant v_bool = TestVariant(true);
+  string s("foobar");
+  TestVariant v_str = TestVariant(s);
+
+  vector<TestCase> tests = {
+    TestCase{ "return 5;", v_int },
+    TestCase{ "return true;", v_bool },
+    TestCase{ "return foobar;", v_str }
+  };
+
+  std::for_each(tests.cbegin(), tests.cend(), [](TestCase c) {
+      auto lexer = Lexer::new_lexer(c.input);
+      auto parser = Parser::new_parser(lexer);
+
+      auto program = parser->parse_program();
+      check_parse_errors(parser);
+
+      REQUIRE(program->statements.size() == 1);
+
+      shared_ptr<ReturnStatement> stmt = static_pointer_cast<ReturnStatement>(program->statements[0]);
+      REQUIRE(stmt->token_literal() == "return");
+
+      REQUIRE(test_literal_expression(stmt->value, c.expected_value) == true);
+    });
+}
+

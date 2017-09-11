@@ -34,8 +34,8 @@ auto test_integer_literal(shared_ptr<Expression> expr, TestVariant value) -> boo
   return int_expr->value == value.as_int;
 }
 
-auto test_string_literal(shared_ptr<Expression> expr, TestVariant value) -> bool {
-  shared_ptr<StringLiteral> str_expr = static_pointer_cast<StringLiteral>(expr);
+auto test_identifier(shared_ptr<Expression> expr, TestVariant value) -> bool {
+  shared_ptr<Identifier> str_expr = static_pointer_cast<Identifier>(expr);
   return str_expr->value == value.as_string;
 }
 
@@ -53,7 +53,7 @@ auto test_literal_expression(shared_ptr<Expression> expr, TestVariant expected) 
     return test_boolean_literal(expr, expected);
     break;
   case TestVariant::t_string:
-    return test_string_literal(expr, expected);
+    return test_identifier(expr, expected);
     break;
   default:
     return false;
@@ -135,7 +135,23 @@ TEST_CASE("test parse return statements") {
       shared_ptr<ReturnStatement> stmt = static_pointer_cast<ReturnStatement>(program->statements[0]);
       REQUIRE(stmt->token_literal() == "return");
 
-      REQUIRE(test_literal_expression(stmt->value, c.expected_value) == true);
+      REQUIRE(test_literal_expression(stmt->value, c.expected_value));
     });
 }
 
+TEST_CASE("test parse identifier") {
+  auto input = "foobar;";
+  string s("foobar");
+  TestVariant expected = TestVariant(s);
+
+  auto lexer = Lexer::new_lexer(input);
+  auto parser = Parser::new_parser(lexer);
+
+  auto program = parser->parse_program();
+  check_parse_errors(parser);
+
+  REQUIRE(program->statements.size() == 1);
+
+  shared_ptr<ExpressionStatement> stmt = static_pointer_cast<ExpressionStatement>(program->statements[0]);
+  REQUIRE(test_identifier(stmt->expression, expected));
+}

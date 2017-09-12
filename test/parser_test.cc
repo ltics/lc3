@@ -209,3 +209,57 @@ TEST_CASE("test parse prefix expression") {
       REQUIRE(test_literal_expression(expr->right, c.expected_value));
     });
 }
+
+TEST_CASE("test parse infix expression") {
+  struct TestCase {
+    string input;
+    TestVariant expected_left_value;
+    string expected_operator;
+    TestVariant expected_right_value;
+  };
+
+  TestVariant v_int = TestVariant(5);
+  TestVariant v_bool_true = TestVariant(true);
+  TestVariant v_bool_false = TestVariant(false);
+  string s1("foobar");
+  TestVariant v_str1 = TestVariant(s1);
+  string s2("barfoo");
+  TestVariant v_str2 = TestVariant(s2);
+
+  vector<TestCase> tests = {
+    TestCase{ "5 + 5;", v_int, "+", v_int },
+		TestCase{ "5 - 5;", v_int, "-", v_int },
+		TestCase{ "5 * 5;", v_int, "*", v_int },
+		TestCase{ "5 / 5;", v_int, "/", v_int },
+		TestCase{ "5 > 5;", v_int, ">", v_int },
+		TestCase{ "5 < 5;", v_int, "<", v_int },
+		TestCase{ "5 == 5;", v_int, "==", v_int },
+		TestCase{ "5 != 5;", v_int, "!=", v_int },
+		TestCase{ "foobar + barfoo;", v_str1, "+", v_str2 },
+		TestCase{ "foobar - barfoo;", v_str1, "-", v_str2 },
+		TestCase{ "foobar * barfoo;", v_str1, "*", v_str2 },
+		TestCase{ "foobar / barfoo;", v_str1, "/", v_str2 },
+		TestCase{ "foobar > barfoo;", v_str1, ">", v_str2 },
+		TestCase{ "foobar < barfoo;", v_str1, "<", v_str2 },
+		TestCase{ "foobar == barfoo;", v_str1, "==", v_str2 },
+		TestCase{ "foobar != barfoo;", v_str1, "!=", v_str2 },
+		TestCase{ "true == true", v_bool_true, "==", v_bool_true },
+		TestCase{ "true != false", v_bool_true, "!=", v_bool_false },
+		TestCase{ "false == false", v_bool_false, "==", v_bool_false }
+  };
+
+  std::for_each(tests.cbegin(), tests.cend(), [](TestCase c) {
+      auto lexer = Lexer::new_lexer(c.input);
+      auto parser = Parser::new_parser(lexer);
+
+      auto program = parser->parse_program();
+      check_parse_errors(parser);
+
+      REQUIRE(program->statements.size() == 1);
+      shared_ptr<ExpressionStatement> stmt = static_pointer_cast<ExpressionStatement>(program->statements[0]);
+      shared_ptr<InfixExpression> expr = static_pointer_cast<InfixExpression>(stmt->expression);
+      REQUIRE(expr->infix_operator == c.expected_operator);
+      REQUIRE(test_literal_expression(expr->left, c.expected_left_value));
+      REQUIRE(test_literal_expression(expr->right, c.expected_right_value));
+    });
+}

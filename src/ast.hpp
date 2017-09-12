@@ -161,10 +161,10 @@ namespace ast {
   class InfixExpression : public Expression {
   public:
     shared_ptr<Expression> left;
-    string prefix_operator;
+    string infix_operator;
     shared_ptr<Expression> right;
 
-    InfixExpression(token::Token t, shared_ptr<Expression> l, string o, shared_ptr<Expression> r): Expression(t), left(l), prefix_operator(o), right(r) {};
+    InfixExpression(token::Token t, shared_ptr<Expression> l, string o, shared_ptr<Expression> r): Expression(t), left(l), infix_operator(o), right(r) {};
 
     string token_literal() {
       return this->token.literal;
@@ -175,7 +175,7 @@ namespace ast {
       s += "(";
       s += this->left->to_string();
       s += " ";
-      s += this->prefix_operator;
+      s += this->infix_operator;
       s += " ";
       s += this->right->to_string();
       s += ")";

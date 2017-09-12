@@ -171,3 +171,41 @@ TEST_CASE("test parse identifier") {
       REQUIRE(test_literal_expression(stmt->expression, c.expected_value));
     });
 }
+
+TEST_CASE("test parse prefix expression") {
+  struct TestCase {
+    string input;
+    string expected_operator;
+    TestVariant expected_value;
+  };
+
+  TestVariant v_int1 = TestVariant(5);
+  TestVariant v_int2 = TestVariant(15);
+  TestVariant v_bool_true = TestVariant(true);
+  TestVariant v_bool_false = TestVariant(false);
+  string s("foobar");
+  TestVariant v_str = TestVariant(s);
+
+  vector<TestCase> tests = {
+    TestCase{ "!5;", "!", v_int1 },
+    TestCase{ "-15", "-", v_int2 },
+    TestCase{ "!true;", "!", v_bool_true },
+    TestCase{ "!false;", "!", v_bool_false },
+    TestCase{ "!foobar;", "!", v_str },
+    TestCase{ "-foobar;", "-", v_str }
+  };
+
+  std::for_each(tests.cbegin(), tests.cend(), [](TestCase c) {
+      auto lexer = Lexer::new_lexer(c.input);
+      auto parser = Parser::new_parser(lexer);
+
+      auto program = parser->parse_program();
+      check_parse_errors(parser);
+
+      REQUIRE(program->statements.size() == 1);
+      shared_ptr<ExpressionStatement> stmt = static_pointer_cast<ExpressionStatement>(program->statements[0]);
+      shared_ptr<PrefixExpression> expr = static_pointer_cast<PrefixExpression>(stmt->expression);
+      REQUIRE(expr->prefix_operator == c.expected_operator);
+      REQUIRE(test_literal_expression(expr->right, c.expected_value));
+    });
+}

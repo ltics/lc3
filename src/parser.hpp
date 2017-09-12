@@ -119,7 +119,7 @@ namespace parser {
     this->register_infix(token::LT, std::bind(&Parser::parse_infix_expression, this, _1));
     this->register_infix(token::GT, std::bind(&Parser::parse_infix_expression, this, _1));
     this->register_infix(token::LPAREN, std::bind(&Parser::parse_call_expression, this, _1));
-    this->register_infix(token::LBRACE, std::bind(&Parser::parse_index_expression, this, _1));
+    this->register_infix(token::LBRACKET, std::bind(&Parser::parse_index_expression, this, _1));
   }
 
   auto Parser::new_parser(shared_ptr<lexer::Lexer> l) -> shared_ptr<Parser> {
@@ -279,7 +279,7 @@ namespace parser {
     while (!this->peek_token_is(token::SEMICOLON) && prec < this->peek_precedence()) {
       auto infix_fn = this->infix_parse_fns[this->peek_token.type];
       if (infix_fn == nullptr) {
-        return nullptr;
+        return left_expr;
       }
 
       this->next_token();
@@ -343,7 +343,7 @@ namespace parser {
 
     auto expr = this->parse_expression(Precedence::LOWEST);
 
-    if (this->expect_peek(token::RPAREN)) {
+    if (!this->expect_peek(token::RPAREN)) {
       return nullptr;
     }
 

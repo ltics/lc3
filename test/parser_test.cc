@@ -68,7 +68,7 @@ TEST_CASE("test precedence") {
   auto l = Lexer::new_lexer("");
   auto p = Parser::new_parser(l);
   REQUIRE(p->get_prefix_parse_fns()["cleantha"] == nullptr);
-  REQUIRE(p->get_infix_parse_fns()[LBRACE] != nullptr);
+  REQUIRE(p->get_infix_parse_fns()[LBRACKET] != nullptr);
 }
 
 TEST_CASE("test parse let statements") {
@@ -228,24 +228,24 @@ TEST_CASE("test parse infix expression") {
 
   vector<TestCase> tests = {
     TestCase{ "5 + 5;", v_int, "+", v_int },
-		TestCase{ "5 - 5;", v_int, "-", v_int },
-		TestCase{ "5 * 5;", v_int, "*", v_int },
-		TestCase{ "5 / 5;", v_int, "/", v_int },
-		TestCase{ "5 > 5;", v_int, ">", v_int },
-		TestCase{ "5 < 5;", v_int, "<", v_int },
-		TestCase{ "5 == 5;", v_int, "==", v_int },
-		TestCase{ "5 != 5;", v_int, "!=", v_int },
-		TestCase{ "foobar + barfoo;", v_str1, "+", v_str2 },
-		TestCase{ "foobar - barfoo;", v_str1, "-", v_str2 },
-		TestCase{ "foobar * barfoo;", v_str1, "*", v_str2 },
-		TestCase{ "foobar / barfoo;", v_str1, "/", v_str2 },
-		TestCase{ "foobar > barfoo;", v_str1, ">", v_str2 },
-		TestCase{ "foobar < barfoo;", v_str1, "<", v_str2 },
-		TestCase{ "foobar == barfoo;", v_str1, "==", v_str2 },
-		TestCase{ "foobar != barfoo;", v_str1, "!=", v_str2 },
-		TestCase{ "true == true", v_bool_true, "==", v_bool_true },
-		TestCase{ "true != false", v_bool_true, "!=", v_bool_false },
-		TestCase{ "false == false", v_bool_false, "==", v_bool_false }
+    TestCase{ "5 - 5;", v_int, "-", v_int },
+    TestCase{ "5 * 5;", v_int, "*", v_int },
+    TestCase{ "5 / 5;", v_int, "/", v_int },
+    TestCase{ "5 > 5;", v_int, ">", v_int },
+    TestCase{ "5 < 5;", v_int, "<", v_int },
+    TestCase{ "5 == 5;", v_int, "==", v_int },
+    TestCase{ "5 != 5;", v_int, "!=", v_int },
+    TestCase{ "foobar + barfoo;", v_str1, "+", v_str2 },
+    TestCase{ "foobar - barfoo;", v_str1, "-", v_str2 },
+    TestCase{ "foobar * barfoo;", v_str1, "*", v_str2 },
+    TestCase{ "foobar / barfoo;", v_str1, "/", v_str2 },
+    TestCase{ "foobar > barfoo;", v_str1, ">", v_str2 },
+    TestCase{ "foobar < barfoo;", v_str1, "<", v_str2 },
+    TestCase{ "foobar == barfoo;", v_str1, "==", v_str2 },
+    TestCase{ "foobar != barfoo;", v_str1, "!=", v_str2 },
+    TestCase{ "true == true", v_bool_true, "==", v_bool_true },
+    TestCase{ "true != false", v_bool_true, "!=", v_bool_false },
+    TestCase{ "false == false", v_bool_false, "==", v_bool_false }
   };
 
   std::for_each(tests.cbegin(), tests.cend(), [](TestCase c) {
@@ -261,5 +261,132 @@ TEST_CASE("test parse infix expression") {
       REQUIRE(expr->infix_operator == c.expected_operator);
       REQUIRE(test_literal_expression(expr->left, c.expected_left_value));
       REQUIRE(test_literal_expression(expr->right, c.expected_right_value));
+    });
+}
+
+TEST_CASE("test parse operator precedence") {
+  struct TestCase {
+    string input;
+    string expected;
+  };
+
+  vector<TestCase> tests = {
+    {
+        "-a * b",
+        "((-a) * b)",
+    },
+    {
+        "!-a",
+        "(!(-a))",
+    },
+    {
+        "a + b + c",
+        "((a + b) + c)",
+    },
+    {
+        "a + b - c",
+        "((a + b) - c)",
+    },
+    {
+        "a * b * c",
+        "((a * b) * c)",
+    },
+    {
+        "a * b / c",
+        "((a * b) / c)",
+    },
+    {
+        "a + b / c",
+        "(a + (b / c))",
+    },
+    {
+        "a + b * c + d / e - f",
+        "(((a + (b * c)) + (d / e)) - f)",
+    },
+    {
+        "3 + 4; -5 * 5",
+        "(3 + 4)((-5) * 5)",
+    },
+    {
+        "5 > 4 == 3 < 4",
+        "((5 > 4) == (3 < 4))",
+    },
+    {
+        "5 < 4 != 3 > 4",
+        "((5 < 4) != (3 > 4))",
+    },
+    {
+        "3 + 4 * 5 == 3 * 1 + 4 * 5",
+        "((3 + (4 * 5)) == ((3 * 1) + (4 * 5)))",
+    },
+    {
+        "true",
+        "true",
+    },
+    {
+        "false",
+        "false",
+    },
+    {
+        "3 > 5 == false",
+        "((3 > 5) == false)",
+    },
+    {
+        "3 < 5 == true",
+        "((3 < 5) == true)",
+    },
+    {
+        "1 + (2 + 3) + 4",
+        "((1 + (2 + 3)) + 4)",
+    },
+    {
+        "(5 + 5) * 2",
+        "((5 + 5) * 2)",
+    },
+    {
+        "2 / (5 + 5)",
+        "(2 / (5 + 5))",
+    },
+    {
+        "(5 + 5) * 2 * (5 + 5)",
+        "(((5 + 5) * 2) * (5 + 5))",
+    },
+    {
+        "-(5 + 5)",
+        "(-(5 + 5))",
+    },
+    {
+        "!(true == true)",
+        "(!(true == true))",
+    },
+    {
+        "a + add(b * c) + d",
+        "((a + add((b * c))) + d)",
+    },
+    {
+        "add(a, b, 1, 2 * 3, 4 + 5, add(6, 7 * 8))",
+        "add(a, b, 1, (2 * 3), (4 + 5), add(6, (7 * 8)))",
+    },
+    {
+        "add(a + b + c * d / f + g)",
+        "add((((a + b) + ((c * d) / f)) + g))",
+    },
+    {
+        "a * [1, 2, 3, 4][b * c] * d",
+        "((a * ([1, 2, 3, 4][(b * c)])) * d)",
+    },
+    {
+        "add(a * b[2], b[1], 2 * [1, 2][1])",
+        "add((a * (b[2])), (b[1]), (2 * ([1, 2][1])))",
+    }
+  };
+
+  std::for_each(tests.cbegin(), tests.cend(), [](TestCase c) {
+      auto lexer = Lexer::new_lexer(c.input);
+      auto parser = Parser::new_parser(lexer);
+
+      shared_ptr<Program> program = parser->parse_program();
+      check_parse_errors(parser);
+      REQUIRE(program->to_string() == c.expected);
     });
 }

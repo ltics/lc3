@@ -51,6 +51,22 @@ namespace ast {
     }
   };
 
+  auto flatten_expressions(vector<shared_ptr<Expression>> strs) -> string {
+    if (strs.size() == 0) {
+      return "";
+    } else if (strs.size() == 1) {
+      return strs[0]->to_string();
+    } else {
+      vector<string> literals = strs | view::take(strs.size() - 1) | view::transform([](shared_ptr<Expression> a) {
+          auto s = a->to_string();
+          s += ",";
+          return s;
+        });
+      literals.push_back(strs[strs.size() - 1]->to_string());
+      return literals | view::join(' ');
+    }
+  }
+
   class Program : public Node {
   public:
     vector<shared_ptr<Statement>> statements = {};
@@ -309,8 +325,7 @@ namespace ast {
     string to_string() {
       string s("");
 
-      vector<string> literals = parameters | view::transform([](auto p) { return p->to_string(); });
-      string literal = literals | view::join(',');
+      string literal = flatten_expressions(parameters | view::transform([](shared_ptr<Identifier> a) { return static_pointer_cast<Expression>(a); }));
 
       s += this->token_literal();
       s += "(";
@@ -336,8 +351,7 @@ namespace ast {
     string to_string() {
       string s("");
 
-      vector<string> literals = arguments | view::transform([](auto a) { return a->to_string(); });
-      string literal = literals | view::join(',');
+      string literal = flatten_expressions(arguments);
 
       s += this->function->to_string();
       s += "(";
@@ -360,8 +374,7 @@ namespace ast {
     string to_string() {
       string s("");
 
-      vector<string> literals = elements | view::transform([](auto e) { return e->to_string(); });
-      string literal = literals | view::join(',');
+      string literal = flatten_expressions(elements);
 
       s += "[";
       s += literal;
@@ -388,7 +401,7 @@ namespace ast {
       s += this->left->to_string();
       s += "[";
       s += this->index->to_string();
-      s += "]";
+      s += "])";
       return s;
     }
   };
@@ -406,7 +419,7 @@ namespace ast {
     string to_string() {
       string s("");
 
-      vector<string> literals = pairs | view::transform([](pair<shared_ptr<Expression>, shared_ptr<Expression>> const &p) { return p.first->to_string() + ":" + p.second->to_string() ; });
+      vector<string> literals = pairs | view::transform([](pair<shared_ptr<Expression>, shared_ptr<Expression>> const &p) { return p.first->to_string() + ":" + p.second->to_string(); });
       string literal = literals | view::join(',');
 
       s += "{";

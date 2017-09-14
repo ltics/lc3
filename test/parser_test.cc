@@ -29,6 +29,16 @@ auto check_parse_errors(shared_ptr<Parser> p) -> void {
   return;
 }
 
+auto generate_and_check_program(string input) -> shared_ptr<Program> {
+  auto lexer = Lexer::new_lexer(input);
+  auto parser = Parser::new_parser(lexer);
+
+  auto program = parser->parse_program();
+  check_parse_errors(parser);
+  REQUIRE(program->statements.size() == 1);
+  return program;
+}
+
 auto test_integer_literal(shared_ptr<Expression> expr, TestVariant value) -> bool {
   shared_ptr<IntegerLiteral> int_expr = static_pointer_cast<IntegerLiteral>(expr);
   return int_expr->value == value.as_int;
@@ -58,6 +68,13 @@ auto test_literal_expression(shared_ptr<Expression> expr, TestVariant expected) 
   default:
     return false;
   }
+}
+
+auto test_infix_expression(shared_ptr<Expression> expression, TestVariant expected_left, string expected_operator, TestVariant expected_right) -> void {
+  shared_ptr<InfixExpression> expr = static_pointer_cast<InfixExpression>(expression);
+  REQUIRE(expr->infix_operator == expected_operator);
+  REQUIRE(test_literal_expression(expr->left, expected_left));
+  REQUIRE(test_literal_expression(expr->right, expected_right));
 }
 
 TEST_CASE("test precedence") {
@@ -90,14 +107,7 @@ TEST_CASE("test parse let statements") {
   };
 
   std::for_each(tests.cbegin(), tests.cend(), [](TestCase c) {
-      auto lexer = Lexer::new_lexer(c.input);
-      auto parser = Parser::new_parser(lexer);
-
-      auto program = parser->parse_program();
-      check_parse_errors(parser);
-
-      REQUIRE(program->statements.size() == 1);
-
+      shared_ptr<Program> program = generate_and_check_program(c.input);
       shared_ptr<LetStatement> stmt = static_pointer_cast<LetStatement>(program->statements[0]);
       REQUIRE(stmt->token_literal() == "let");
       REQUIRE(stmt->name->value == c.expected_identifier);
@@ -124,14 +134,7 @@ TEST_CASE("test parse return statements") {
   };
 
   std::for_each(tests.cbegin(), tests.cend(), [](TestCase c) {
-      auto lexer = Lexer::new_lexer(c.input);
-      auto parser = Parser::new_parser(lexer);
-
-      auto program = parser->parse_program();
-      check_parse_errors(parser);
-
-      REQUIRE(program->statements.size() == 1);
-
+      shared_ptr<Program> program = generate_and_check_program(c.input);
       shared_ptr<ReturnStatement> stmt = static_pointer_cast<ReturnStatement>(program->statements[0]);
       REQUIRE(stmt->token_literal() == "return");
 
@@ -159,14 +162,7 @@ TEST_CASE("test parse identifier") {
   };
 
   std::for_each(tests.cbegin(), tests.cend(), [](TestCase c) {
-      auto lexer = Lexer::new_lexer(c.input);
-      auto parser = Parser::new_parser(lexer);
-
-      auto program = parser->parse_program();
-      check_parse_errors(parser);
-
-      REQUIRE(program->statements.size() == 1);
-
+      shared_ptr<Program> program = generate_and_check_program(c.input);
       shared_ptr<ExpressionStatement> stmt = static_pointer_cast<ExpressionStatement>(program->statements[0]);
       REQUIRE(test_literal_expression(stmt->expression, c.expected_value));
     });
@@ -196,13 +192,7 @@ TEST_CASE("test parse prefix expression") {
   };
 
   std::for_each(tests.cbegin(), tests.cend(), [](TestCase c) {
-      auto lexer = Lexer::new_lexer(c.input);
-      auto parser = Parser::new_parser(lexer);
-
-      auto program = parser->parse_program();
-      check_parse_errors(parser);
-
-      REQUIRE(program->statements.size() == 1);
+      shared_ptr<Program> program = generate_and_check_program(c.input);
       shared_ptr<ExpressionStatement> stmt = static_pointer_cast<ExpressionStatement>(program->statements[0]);
       shared_ptr<PrefixExpression> expr = static_pointer_cast<PrefixExpression>(stmt->expression);
       REQUIRE(expr->prefix_operator == c.expected_operator);
@@ -249,18 +239,9 @@ TEST_CASE("test parse infix expression") {
   };
 
   std::for_each(tests.cbegin(), tests.cend(), [](TestCase c) {
-      auto lexer = Lexer::new_lexer(c.input);
-      auto parser = Parser::new_parser(lexer);
-
-      auto program = parser->parse_program();
-      check_parse_errors(parser);
-
-      REQUIRE(program->statements.size() == 1);
+      shared_ptr<Program> program = generate_and_check_program(c.input);
       shared_ptr<ExpressionStatement> stmt = static_pointer_cast<ExpressionStatement>(program->statements[0]);
-      shared_ptr<InfixExpression> expr = static_pointer_cast<InfixExpression>(stmt->expression);
-      REQUIRE(expr->infix_operator == c.expected_operator);
-      REQUIRE(test_literal_expression(expr->left, c.expected_left_value));
-      REQUIRE(test_literal_expression(expr->right, c.expected_right_value));
+      test_infix_expression(stmt->expression, c.expected_left_value, c.expected_operator, c.expected_right_value);
     });
 }
 
@@ -384,8 +365,7 @@ TEST_CASE("test parse operator precedence") {
   std::for_each(tests.cbegin(), tests.cend(), [](TestCase c) {
       auto lexer = Lexer::new_lexer(c.input);
       auto parser = Parser::new_parser(lexer);
-
-      shared_ptr<Program> program = parser->parse_program();
+      auto program = parser->parse_program();
       check_parse_errors(parser);
       REQUIRE(program->to_string() == c.expected);
     });
@@ -393,24 +373,15 @@ TEST_CASE("test parse operator precedence") {
 
 TEST_CASE("test parse if expression") {
   auto input = "if (x < y) { x }";
-  auto lexer = Lexer::new_lexer(input);
-  auto parser = Parser::new_parser(lexer);
-
-  shared_ptr<Program> program = parser->parse_program();
-  check_parse_errors(parser);
-  REQUIRE(program->statements.size() == 1);
+  shared_ptr<Program> program = generate_and_check_program(input);
   shared_ptr<ExpressionStatement> stmt = static_pointer_cast<ExpressionStatement>(program->statements[0]);
   shared_ptr<IfExpression> expr = static_pointer_cast<IfExpression>(stmt->expression);
 
-  shared_ptr<InfixExpression> cond = static_pointer_cast<InfixExpression>(expr->condition);
-  REQUIRE(cond->infix_operator == "<");
   string s_left("x");
   TestVariant v_left = TestVariant(s_left);
   string s_right("y");
   TestVariant v_right = TestVariant(s_right);
-
-  REQUIRE(test_literal_expression(cond->left, v_left));
-  REQUIRE(test_literal_expression(cond->right, v_right));
+  test_infix_expression(expr->condition, v_left, "<", v_right);
 
   REQUIRE(expr->consequence->statements.size() == 1);
   shared_ptr<ExpressionStatement> cons = static_pointer_cast<ExpressionStatement>(expr->consequence->statements[0]);
@@ -423,24 +394,15 @@ TEST_CASE("test parse if expression") {
 
 TEST_CASE("test parse if else expression") {
   auto input = "if (x < y) { x } else { y }";
-  auto lexer = Lexer::new_lexer(input);
-  auto parser = Parser::new_parser(lexer);
-
-  shared_ptr<Program> program = parser->parse_program();
-  check_parse_errors(parser);
-  REQUIRE(program->statements.size() == 1);
+  shared_ptr<Program> program = generate_and_check_program(input);
   shared_ptr<ExpressionStatement> stmt = static_pointer_cast<ExpressionStatement>(program->statements[0]);
   shared_ptr<IfExpression> expr = static_pointer_cast<IfExpression>(stmt->expression);
 
-  shared_ptr<InfixExpression> cond = static_pointer_cast<InfixExpression>(expr->condition);
-  REQUIRE(cond->infix_operator == "<");
   string s_left("x");
   TestVariant v_left = TestVariant(s_left);
   string s_right("y");
   TestVariant v_right = TestVariant(s_right);
-
-  REQUIRE(test_literal_expression(cond->left, v_left));
-  REQUIRE(test_literal_expression(cond->right, v_right));
+  test_infix_expression(expr->condition, v_left, "<", v_right);
 
   REQUIRE(expr->consequence->statements.size() == 1);
   shared_ptr<ExpressionStatement> cons = static_pointer_cast<ExpressionStatement>(expr->consequence->statements[0]);
@@ -457,13 +419,7 @@ TEST_CASE("test parse if else expression") {
 
 TEST_CASE("test parse function literal") {
   auto input = "fn(x, y) { x + y; }";
-  auto lexer = Lexer::new_lexer(input);
-  auto parser = Parser::new_parser(lexer);
-
-  shared_ptr<Program> program = parser->parse_program();
-  check_parse_errors(parser);
-  REQUIRE(program->statements.size() == 1);
-
+  shared_ptr<Program> program = generate_and_check_program(input);
   shared_ptr<ExpressionStatement> stmt = static_pointer_cast<ExpressionStatement>(program->statements[0]);
   shared_ptr<FunctionLiteral> func = static_pointer_cast<FunctionLiteral>(stmt->expression);
 
@@ -479,15 +435,11 @@ TEST_CASE("test parse function literal") {
   REQUIRE(func->body->statements.size() == 1);
   shared_ptr<ExpressionStatement> body_stmt = static_pointer_cast<ExpressionStatement>(func->body->statements[0]);
 
-  shared_ptr<InfixExpression> expr = static_pointer_cast<InfixExpression>(body_stmt->expression);
-  REQUIRE(expr->infix_operator == "+");
   string s_left("x");
   TestVariant v_left = TestVariant(s_left);
   string s_right("y");
   TestVariant v_right = TestVariant(s_right);
-
-  REQUIRE(test_literal_expression(expr->left, v_left));
-  REQUIRE(test_literal_expression(expr->right, v_right));
+  test_infix_expression(body_stmt->expression, v_left, "+", v_right);
 }
 
 TEST_CASE("test parse function parameters") {
@@ -503,13 +455,7 @@ TEST_CASE("test parse function parameters") {
   };
 
   std::for_each(tests.cbegin(), tests.cend(), [](TestCase c) {
-      auto lexer = Lexer::new_lexer(c.input);
-      auto parser = Parser::new_parser(lexer);
-
-      auto program = parser->parse_program();
-      check_parse_errors(parser);
-      REQUIRE(program->statements.size() == 1);
-
+      shared_ptr<Program> program = generate_and_check_program(c.input);
       shared_ptr<ExpressionStatement> stmt = static_pointer_cast<ExpressionStatement>(program->statements[0]);
       shared_ptr<FunctionLiteral> func = static_pointer_cast<FunctionLiteral>(stmt->expression);
       REQUIRE(func->parameters.size() == c.expected_params.size());

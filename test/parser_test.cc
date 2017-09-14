@@ -454,3 +454,68 @@ TEST_CASE("test parse if else expression") {
   TestVariant v_a = TestVariant(a);
   REQUIRE(test_identifier(alt->expression, v_a));
 }
+
+TEST_CASE("test parse function literal") {
+  auto input = "fn(x, y) { x + y; }";
+  auto lexer = Lexer::new_lexer(input);
+  auto parser = Parser::new_parser(lexer);
+
+  shared_ptr<Program> program = parser->parse_program();
+  check_parse_errors(parser);
+  REQUIRE(program->statements.size() == 1);
+
+  shared_ptr<ExpressionStatement> stmt = static_pointer_cast<ExpressionStatement>(program->statements[0]);
+  shared_ptr<FunctionLiteral> func = static_pointer_cast<FunctionLiteral>(stmt->expression);
+
+  REQUIRE(func->parameters.size() == 2);
+
+  string p1("x");
+  TestVariant v_p1 = TestVariant(p1);
+  string p2("y");
+  TestVariant v_p2 = TestVariant(p2);
+  REQUIRE(test_literal_expression(func->parameters[0], v_p1));
+  REQUIRE(test_literal_expression(func->parameters[1], v_p2));
+
+  REQUIRE(func->body->statements.size() == 1);
+  shared_ptr<ExpressionStatement> body_stmt = static_pointer_cast<ExpressionStatement>(func->body->statements[0]);
+
+  shared_ptr<InfixExpression> expr = static_pointer_cast<InfixExpression>(body_stmt->expression);
+  REQUIRE(expr->infix_operator == "+");
+  string s_left("x");
+  TestVariant v_left = TestVariant(s_left);
+  string s_right("y");
+  TestVariant v_right = TestVariant(s_right);
+
+  REQUIRE(test_literal_expression(expr->left, v_left));
+  REQUIRE(test_literal_expression(expr->right, v_right));
+}
+
+TEST_CASE("test parse function parameters") {
+  struct TestCase {
+    string input;
+    vector<string> expected_params;
+  };
+
+  vector<TestCase> tests = {
+    TestCase{ "fn() {};", {} },
+    TestCase{ "fn(x) {};", { "x" } },
+    TestCase{ "fn(x, y, z) {};", { "x", "y", "z" } },
+  };
+
+  std::for_each(tests.cbegin(), tests.cend(), [](TestCase c) {
+      auto lexer = Lexer::new_lexer(c.input);
+      auto parser = Parser::new_parser(lexer);
+
+      auto program = parser->parse_program();
+      check_parse_errors(parser);
+      REQUIRE(program->statements.size() == 1);
+
+      shared_ptr<ExpressionStatement> stmt = static_pointer_cast<ExpressionStatement>(program->statements[0]);
+      shared_ptr<FunctionLiteral> func = static_pointer_cast<FunctionLiteral>(stmt->expression);
+      REQUIRE(func->parameters.size() == c.expected_params.size());
+
+      for (int i = 0; i < c.expected_params.size(); i++) {
+        test_literal_expression(func->parameters.at(i), TestVariant(c.expected_params[i]));
+      }
+    });
+}

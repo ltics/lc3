@@ -465,3 +465,21 @@ TEST_CASE("test parse function parameters") {
       }
     });
 }
+
+TEST_CASE("test parse call expression") {
+  auto input = "add(1, 2 * 3, 4 + 5);";
+  shared_ptr<Program> program = generate_and_check_program(input);
+  shared_ptr<ExpressionStatement> stmt = static_pointer_cast<ExpressionStatement>(program->statements[0]);
+  shared_ptr<CallExpression> expr = static_pointer_cast<CallExpression>(stmt->expression);
+
+  string f("add");
+  TestVariant f_var = TestVariant(f);
+  REQUIRE(test_identifier(expr->function, f_var));
+
+  REQUIRE(expr->arguments.size() == 3);
+
+  test_literal_expression(expr->arguments[0], TestVariant(1));
+  test_infix_expression(expr->arguments[1], TestVariant(2), "*", TestVariant(3));
+  test_infix_expression(expr->arguments[2], TestVariant(4), "+", TestVariant(5));
+}
+

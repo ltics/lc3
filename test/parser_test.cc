@@ -390,3 +390,67 @@ TEST_CASE("test parse operator precedence") {
       REQUIRE(program->to_string() == c.expected);
     });
 }
+
+TEST_CASE("test parse if expression") {
+  auto input = "if (x < y) { x }";
+  auto lexer = Lexer::new_lexer(input);
+  auto parser = Parser::new_parser(lexer);
+
+  shared_ptr<Program> program = parser->parse_program();
+  check_parse_errors(parser);
+  REQUIRE(program->statements.size() == 1);
+  shared_ptr<ExpressionStatement> stmt = static_pointer_cast<ExpressionStatement>(program->statements[0]);
+  shared_ptr<IfExpression> expr = static_pointer_cast<IfExpression>(stmt->expression);
+
+  shared_ptr<InfixExpression> cond = static_pointer_cast<InfixExpression>(expr->condition);
+  REQUIRE(cond->infix_operator == "<");
+  string s_left("x");
+  TestVariant v_left = TestVariant(s_left);
+  string s_right("y");
+  TestVariant v_right = TestVariant(s_right);
+
+  REQUIRE(test_literal_expression(cond->left, v_left));
+  REQUIRE(test_literal_expression(cond->right, v_right));
+
+  REQUIRE(expr->consequence->statements.size() == 1);
+  shared_ptr<ExpressionStatement> cons = static_pointer_cast<ExpressionStatement>(expr->consequence->statements[0]);
+  string c("x");
+  TestVariant v_c = TestVariant(c);
+  REQUIRE(test_identifier(cons->expression, v_c));
+
+  REQUIRE(expr->alternative == nullptr);
+}
+
+TEST_CASE("test parse if else expression") {
+  auto input = "if (x < y) { x } else { y }";
+  auto lexer = Lexer::new_lexer(input);
+  auto parser = Parser::new_parser(lexer);
+
+  shared_ptr<Program> program = parser->parse_program();
+  check_parse_errors(parser);
+  REQUIRE(program->statements.size() == 1);
+  shared_ptr<ExpressionStatement> stmt = static_pointer_cast<ExpressionStatement>(program->statements[0]);
+  shared_ptr<IfExpression> expr = static_pointer_cast<IfExpression>(stmt->expression);
+
+  shared_ptr<InfixExpression> cond = static_pointer_cast<InfixExpression>(expr->condition);
+  REQUIRE(cond->infix_operator == "<");
+  string s_left("x");
+  TestVariant v_left = TestVariant(s_left);
+  string s_right("y");
+  TestVariant v_right = TestVariant(s_right);
+
+  REQUIRE(test_literal_expression(cond->left, v_left));
+  REQUIRE(test_literal_expression(cond->right, v_right));
+
+  REQUIRE(expr->consequence->statements.size() == 1);
+  shared_ptr<ExpressionStatement> cons = static_pointer_cast<ExpressionStatement>(expr->consequence->statements[0]);
+  string c("x");
+  TestVariant v_c = TestVariant(c);
+  REQUIRE(test_identifier(cons->expression, v_c));
+
+  REQUIRE(expr->alternative->statements.size() == 1);
+  shared_ptr<ExpressionStatement> alt = static_pointer_cast<ExpressionStatement>(expr->alternative->statements[0]);
+  string a("y");
+  TestVariant v_a = TestVariant(a);
+  REQUIRE(test_identifier(alt->expression, v_a));
+}

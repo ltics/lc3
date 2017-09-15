@@ -483,3 +483,10 @@ TEST_CASE("test parse call expression") {
   test_infix_expression(expr->arguments[2], TestVariant(4), "+", TestVariant(5));
 }
 
+TEST_CASE("test parse string literal") {
+  auto input = "\"hello world\"";
+  shared_ptr<Program> program = generate_and_check_program(input);
+  shared_ptr<ExpressionStatement> stmt = static_pointer_cast<ExpressionStatement>(program->statements[0]);
+  shared_ptr<StringLiteral> array = static_pointer_cast<StringLiteral>(stmt->expression);
+  REQUIRE(array->value == "hello world");
+}

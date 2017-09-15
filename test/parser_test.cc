@@ -8,6 +8,7 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <functional>
 
 using namespace std;
 using namespace token;
@@ -519,4 +520,94 @@ TEST_CASE("test parse index expression") {
   TestVariant v_left(left);
   REQUIRE(test_identifier(idx->left, v_left));
   test_infix_expression(idx->index, TestVariant(1), "+", TestVariant(1));
+}
+
+TEST_CASE("test parse empty hash literal") {
+  auto input = "{}";
+  shared_ptr<Program> program = generate_and_check_program(input);
+  shared_ptr<ExpressionStatement> stmt = static_pointer_cast<ExpressionStatement>(program->statements[0]);
+  shared_ptr<HashLiteral> hash = static_pointer_cast<HashLiteral>(stmt->expression);
+  REQUIRE(hash->pairs.size() == 0);
+}
+
+TEST_CASE("test parse hash literal string keys") {
+  auto input = "{\"one\": 1, \"two\": 2, \"three\": 3}";
+  shared_ptr<Program> program = generate_and_check_program(input);
+  shared_ptr<ExpressionStatement> stmt = static_pointer_cast<ExpressionStatement>(program->statements[0]);
+  shared_ptr<HashLiteral> hash = static_pointer_cast<HashLiteral>(stmt->expression);
+  REQUIRE(hash->pairs.size() == 3);
+  map<string, int> expected = {
+    { "one", 1 },
+    { "two", 2 },
+    { "three", 3 }
+  };
+
+  std::for_each(hash->pairs.cbegin(), hash->pairs.cend(), [&](pair<shared_ptr<Expression>, shared_ptr<Expression>> const &p) {
+      shared_ptr<StringLiteral> key = static_pointer_cast<StringLiteral>(p.first);
+      int expected_value = expected[key->value];
+      test_integer_literal(p.second, TestVariant(expected_value));
+    });
+}
+
+TEST_CASE("test parse hash literal boolean keys") {
+  auto input = "{true: 1, false: 2}";
+  shared_ptr<Program> program = generate_and_check_program(input);
+  shared_ptr<ExpressionStatement> stmt = static_pointer_cast<ExpressionStatement>(program->statements[0]);
+  shared_ptr<HashLiteral> hash = static_pointer_cast<HashLiteral>(stmt->expression);
+  REQUIRE(hash->pairs.size() == 2);
+  map<string, int> expected = {
+    { "true", 1 },
+    { "false", 2 }
+  };
+
+  std::for_each(hash->pairs.cbegin(), hash->pairs.cend(), [&](pair<shared_ptr<Expression>, shared_ptr<Expression>> const &p) {
+      shared_ptr<Boolean> key = static_pointer_cast<Boolean>(p.first);
+      int expected_value = expected[key->to_string()];
+      test_integer_literal(p.second, TestVariant(expected_value));
+    });
+}
+
+TEST_CASE("test parse hash literal integer keys") {
+  auto input = "{1: 1, 2: 2, 3: 3}";
+  shared_ptr<Program> program = generate_and_check_program(input);
+  shared_ptr<ExpressionStatement> stmt = static_pointer_cast<ExpressionStatement>(program->statements[0]);
+  shared_ptr<HashLiteral> hash = static_pointer_cast<HashLiteral>(stmt->expression);
+  REQUIRE(hash->pairs.size() == 3);
+  map<string, int> expected = {
+    { "1", 1 },
+    { "2", 2 },
+    { "3", 3 }
+  };
+
+  std::for_each(hash->pairs.cbegin(), hash->pairs.cend(), [&](pair<shared_ptr<Expression>, shared_ptr<Expression>> const &p) {
+      shared_ptr<IntegerLiteral> key = static_pointer_cast<IntegerLiteral>(p.first);
+      int expected_value = expected[key->to_string()];
+      test_integer_literal(p.second, TestVariant(expected_value));
+    });
+}
+
+TEST_CASE("test parse hash literal with expression") {
+  auto input = "{\"one\": 0 + 1, \"two\": 10 - 8, \"three\": 15 / 5}";
+  shared_ptr<Program> program = generate_and_check_program(input);
+  shared_ptr<ExpressionStatement> stmt = static_pointer_cast<ExpressionStatement>(program->statements[0]);
+  shared_ptr<HashLiteral> hash = static_pointer_cast<HashLiteral>(stmt->expression);
+  REQUIRE(hash->pairs.size() == 3);
+
+  map<string, function<void(shared_ptr<Expression>)>> expected = {
+    { "one", [](shared_ptr<Expression> e) -> void {
+        test_infix_expression(e, TestVariant(0), "+", TestVariant(1));
+      } },
+    { "two", [](shared_ptr<Expression> e) -> void {
+        test_infix_expression(e, TestVariant(10), "-", TestVariant(8));
+      } },
+    { "three", [](shared_ptr<Expression> e) -> void {
+        test_infix_expression(e, TestVariant(15), "/", TestVariant(5));
+      } }
+  };
+
+  std::for_each(hash->pairs.cbegin(), hash->pairs.cend(), [&](pair<shared_ptr<Expression>, shared_ptr<Expression>> const &p) {
+      shared_ptr<StringLiteral> key = static_pointer_cast<StringLiteral>(p.first);
+      auto test_func = expected[key->value];
+      test_func(p.second);
+    });
 }

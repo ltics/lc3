@@ -487,6 +487,36 @@ TEST_CASE("test parse string literal") {
   auto input = "\"hello world\"";
   shared_ptr<Program> program = generate_and_check_program(input);
   shared_ptr<ExpressionStatement> stmt = static_pointer_cast<ExpressionStatement>(program->statements[0]);
-  shared_ptr<StringLiteral> array = static_pointer_cast<StringLiteral>(stmt->expression);
-  REQUIRE(array->value == "hello world");
+  shared_ptr<StringLiteral> str = static_pointer_cast<StringLiteral>(stmt->expression);
+  REQUIRE(str->value == "hello world");
+}
+
+TEST_CASE("test parse empty array literal") {
+  auto input= "[]";
+  shared_ptr<Program> program = generate_and_check_program(input);
+  shared_ptr<ExpressionStatement> stmt = static_pointer_cast<ExpressionStatement>(program->statements[0]);
+  shared_ptr<ArrayLiteral> array = static_pointer_cast<ArrayLiteral>(stmt->expression);
+  REQUIRE(array->elements.size() == 0);
+}
+
+TEST_CASE("test parse array literal") {
+  auto input = "[1, 2 * 2, 3 + 3]";
+  shared_ptr<Program> program = generate_and_check_program(input);
+  shared_ptr<ExpressionStatement> stmt = static_pointer_cast<ExpressionStatement>(program->statements[0]);
+  shared_ptr<ArrayLiteral> array = static_pointer_cast<ArrayLiteral>(stmt->expression);
+  REQUIRE(array->elements.size() == 3);
+  REQUIRE(test_integer_literal(array->elements[0], TestVariant(1)));
+  test_infix_expression(array->elements[1], TestVariant(2), "*", TestVariant(2));
+  test_infix_expression(array->elements[2], TestVariant(3), "+", TestVariant(3));
+}
+
+TEST_CASE("test parse index expression") {
+  auto input = "myArray[1 + 1]";
+  shared_ptr<Program> program = generate_and_check_program(input);
+  shared_ptr<ExpressionStatement> stmt = static_pointer_cast<ExpressionStatement>(program->statements[0]);
+  shared_ptr<IndexExpression> idx = static_pointer_cast<IndexExpression>(stmt->expression);
+  string left("myArray");
+  TestVariant v_left(left);
+  REQUIRE(test_identifier(idx->left, v_left));
+  test_infix_expression(idx->index, TestVariant(1), "+", TestVariant(1));
 }

@@ -4,3 +4,6 @@
 [submodule "include/catch"]
 	path = include/catch
 	url = https://github.com/philsquared/Catch.git
+[submodule "include/fmt"]
+	path = include/fmt
+	url = https://github.com/fmtlib/fmt.git

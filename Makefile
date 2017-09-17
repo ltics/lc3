@@ -1,13 +1,13 @@
 CC=c++
-FLAG=-Wall -std=c++14 -I./include/range-v3/include -I./include/catch/single_include
+FLAG=-Wall -std=c++14 -I./include/range-v3/include -I./include/catch/single_include -I./include/fmt
 MAIN=main
 TEST=test
 
 .PHONY: test clean all
 
-build: token.o lexer.o ast.o repl.o parser.o object.o main.o main
+build: token.o lexer.o ast.o repl.o parser.o object.o builtins.o main.o main
 
-all: token.o lexer.o ast.o repl.o parser.o object.o main.o test main
+all: token.o lexer.o ast.o repl.o parser.o object.o builtins.o main.o test main
 
 token.o:
 	$(CC) $(FLAG) -c ./src/token.hpp
@@ -26,6 +26,9 @@ parser.o: lexer.o
 
 object.o:
 	$(CC) $(FLAG) -c ./src/object.hpp
+
+builtins.o:
+	$(CC) $(FLAG) -c ./src/builtins.hpp
 
 main.o: repl.o
 	$(CC) $(FLAG) -c ./src/main.cc

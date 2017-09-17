@@ -90,7 +90,7 @@ namespace object {
     virtual HashKey hash_key() = 0;
   };
 
-  class Integer : Object, Hashable {
+  class Integer : public Object, public Hashable {
   public:
     int value;
 
@@ -111,7 +111,7 @@ namespace object {
     }
   };
 
-  class Boolean : Object, Hashable {
+  class Boolean : public Object, public Hashable {
   public:
     bool value;
 
@@ -132,7 +132,7 @@ namespace object {
     }
   };
 
-  class Null : Object {
+  class Null : public Object {
   public:
     ObjectType type() {
       return NULL_OBJ;
@@ -143,7 +143,7 @@ namespace object {
     }
   };
 
-  class ReturnValue : Object {
+  class ReturnValue : public Object {
   public:
     shared_ptr<Object> value;
 
@@ -158,7 +158,7 @@ namespace object {
     }
   };
 
-  class Error : Object {
+  class Error : public Object {
   public:
     string message;
 
@@ -173,7 +173,7 @@ namespace object {
     }
   };
 
-  class Function : Object {
+  class Function : public Object {
   public:
     vector<shared_ptr<Identifier>> parameters;
     shared_ptr<BlockStatement> body;
@@ -205,7 +205,7 @@ namespace object {
     }
   };
 
-  class String : Object {
+  class String : public Object {
   public:
     string value;
 
@@ -220,7 +220,7 @@ namespace object {
     }
   };
 
-  class Builtin : Object {
+  class Builtin : public Object {
   public:
     BuiltinFunction func;
 
@@ -235,7 +235,7 @@ namespace object {
     }
   };
 
-  class Array : Object {
+  class Array : public Object {
   public:
     vector<shared_ptr<Object>> elements;
 
@@ -270,7 +270,7 @@ namespace object {
       : key(k), value(v) {};
   };
 
-  class Hash : Object {
+  class Hash : public Object {
   public:
     map<HashKey, HashPair> pairs;
 

@@ -5,9 +5,9 @@ TEST=test
 
 .PHONY: test clean all
 
-build: token.o lexer.o ast.o repl.o parser.o object.o builtins.o main.o main
+build: token.o lexer.o ast.o repl.o parser.o object.o builtins.o eval.o main.o main
 
-all: token.o lexer.o ast.o repl.o parser.o object.o builtins.o main.o test main
+all: token.o lexer.o ast.o repl.o parser.o object.o builtins.o eval.o main.o test main
 
 token.o:
 	$(CC) $(FLAG) -c ./src/token.hpp
@@ -29,6 +29,9 @@ object.o:
 
 builtins.o:
 	$(CC) $(FLAG) -c ./src/builtins.hpp
+
+eval.o:
+	$(CC) $(FLAG) -c ./src/eval.hpp
 
 main.o: repl.o
 	$(CC) $(FLAG) -c ./src/main.cc

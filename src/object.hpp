@@ -54,12 +54,6 @@ namespace object {
     map<string, shared_ptr<Object>> store = {};
     shared_ptr<Environment> outer = nullptr;
 
-    shared_ptr<Environment> new_enclosed_environment(shared_ptr<Environment> outer) {
-      shared_ptr<Environment> env = make_shared<Environment>();
-      env->outer = outer;
-      return env;
-    }
-
     shared_ptr<Object> get(string name) {
       auto result = this->store.find(name);
       if (result == this->store.end() && this->outer != nullptr) {
@@ -75,6 +69,12 @@ namespace object {
     }
   };
 
+  shared_ptr<Environment> new_enclosed_environment(shared_ptr<Environment> outer) {
+    shared_ptr<Environment> env = make_shared<Environment>();
+    env->outer = outer;
+    return env;
+  }
+
   typedef function<shared_ptr<Object>(vector<shared_ptr<Object>> args)> BuiltinFunction;
 
   class HashKey {
@@ -84,6 +84,14 @@ namespace object {
 
     HashKey(ObjectType t, unsigned int v): type(t), value(v) {};
   };
+
+  bool operator==(const HashKey& key1, const HashKey& key2) {
+    return key1.type == key2.type && key1.value == key2.value;
+  }
+
+  bool operator!=(const HashKey& key1, const HashKey& key2) {
+    return !(key1 == key2);
+  }
 
   class Hashable {
   public:
@@ -297,4 +305,61 @@ namespace object {
       return s;
     }
   };
+
+  bool operator==(shared_ptr<Object> obj1, shared_ptr<Object> obj2) {
+    if (obj1->type() != obj2->type()) {
+      return false;
+    } else {
+      if (obj1->type() == INTEGER_OBJ) {
+        return static_pointer_cast<Integer>(obj1)->value == static_pointer_cast<Integer>(obj2)->value;
+      } else if (obj1->type() == BOOLEAN_OBJ) {
+        return static_pointer_cast<Boolean>(obj1)->value == static_pointer_cast<Boolean>(obj2)->value;
+      } else if (obj1->type() == STRING_OBJ) {
+        return static_pointer_cast<String>(obj1)->value == static_pointer_cast<String>(obj2)->value;
+      } else if (obj1->type() == RETURN_VALUE_OBJ) {
+        return static_pointer_cast<ReturnValue>(obj1)->value == static_pointer_cast<ReturnValue>(obj2)->value;
+      } else if (obj1->type() == ARRAY_OBJ) {
+        auto elems1 = static_pointer_cast<Array>(obj1)->elements;
+        auto elems2 = static_pointer_cast<Array>(obj2)->elements;
+        if (elems1.size() == elems2.size()) {
+          for (int i = 0; i < elems1.size(); i++) {
+            if (!(elems1[i] == elems2[i])) {
+              return false;
+            }
+          }
+          return true;
+        } else {
+          return false;
+        }
+      } else if (obj1->type() == HASH_OBJ) {
+        auto pairs1 = static_pointer_cast<Hash>(obj1)->pairs;
+        auto pairs2 = static_pointer_cast<Hash>(obj2)->pairs;
+        if (pairs1.size() == pairs2.size()) {
+          for (auto entry1 = pairs1.begin(),
+                    entry2 = pairs2.begin();
+               entry1 != pairs1.end();
+               ++entry1 , ++entry2) {
+            if (!(entry1->first == entry2->first &&
+                  entry1->second.key == entry2->second.key &&
+                  entry1->second.value == entry2->second.value)) {
+              return false;
+            }
+          }
+          return true;
+        } else {
+          return false;
+        }
+      } else if (obj1->type() == ERROR_OBJ) {
+        return static_pointer_cast<Error>(obj1)->message == static_pointer_cast<Error>(obj2)->message;
+      } else if (obj1->type() == NULL_OBJ) {
+        return true;
+      } else {
+        return false;
+      }
+    }
+  }
+
+  bool operator!=(shared_ptr<Object> obj1, shared_ptr<Object> obj2) {
+    return !(obj1 == obj2);
+  }
 }

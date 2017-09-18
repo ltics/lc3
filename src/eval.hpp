@@ -239,6 +239,42 @@ namespace eval {
     }
   }
 
+  auto eval_array_index_expression(shared_ptr<Array> arr, shared_ptr<Integer> index) -> shared_ptr<Object> {
+    auto max = arr->elements.size() - 1;
+    auto idx = index->value;
+    if (idx < 0 || idx > max) {
+      return NULLOBJ;
+    }
+
+    return arr->elements[idx];
+  }
+
+  auto eval_hash_index_expression(shared_ptr<Hash> hash, shared_ptr<Object> index) -> shared_ptr<Object> {
+    if (is_hashable(index)) {
+      auto pairs = hash->pairs;
+      auto key = static_pointer_cast<Hashable>(index)->hash_key();
+      auto result = pairs.find(key);
+      if (result != pairs.end()) {
+        return result->second.value;
+      } else {
+        return NULLOBJ;
+      }
+    } else {
+      return make_shared<Error>(format("unusable as hash key: {0}", index->type()));
+    }
+  }
+
+  auto eval_index_expression(shared_ptr<Object> left, shared_ptr<Object> index) -> shared_ptr<Object> {
+    if (left->type() == ARRAY_OBJ && index->type() == INTEGER_OBJ) {
+      return eval_array_index_expression(static_pointer_cast<Array>(left),
+                                         static_pointer_cast<Integer>(index));
+    } else if (left->type() == HASH_OBJ) {
+      return eval_hash_index_expression(static_pointer_cast<Hash>(left), index);
+    } else {
+      return make_shared<Error>(format("index operator not supported: {0}"));
+    }
+  }
+
   auto eval(shared_ptr<Node> node, shared_ptr<Environment> env) -> shared_ptr<Object> {
     switch (node->type()) {
     case NodeType::PROGRAM:
@@ -318,12 +354,29 @@ namespace eval {
 
       return apply_function(func_obj, args);
     }
-    case NodeType::ARRAYLITERAL:
+    case NodeType::ARRAYLITERAL: {
+      auto arr_expr = static_pointer_cast<ArrayLiteral>(node);
+      auto elements = eval_expressions(arr_expr->elements, env);
+      if (elements.size() == 1 && is_error(elements[0])) {
+        return elements[0];
+      }
+      return make_shared<Array>(elements);
+    }
+    case NodeType::INDEXEXPRESSION: {
+      auto index_expr = static_pointer_cast<IndexExpression>(node);
+      auto left_obj = eval(index_expr->left, env);
+      if (is_error(left_obj)) {
+        return left_obj;
+      }
+      auto index_obj = eval(index_expr->index, env);
+      if (is_error(index_obj)) {
+        return index_obj;
+      }
+      return eval_index_expression(left_obj, index_obj);
+    }
+    case NodeType::HASHLITERAL: {
       return nullptr;
-    case NodeType::INDEXEXPRESSION:
-      return nullptr;
-    case NodeType::HASHLITERAL:
-      return nullptr;
+    }
     default:
       return nullptr;
     }

@@ -213,7 +213,7 @@ namespace object {
     }
   };
 
-  class String : public Object {
+  class String : public Object, public Hashable {
   public:
     string value;
 
@@ -225,6 +225,11 @@ namespace object {
 
     string inspect() {
       return this->value;
+    }
+
+    HashKey hash_key() {
+      size_t value_hash = hash<string>{}(this->value);
+      return HashKey(this->value, static_cast<int>(value_hash));
     }
   };
 
@@ -361,5 +366,12 @@ namespace object {
 
   bool operator!=(shared_ptr<Object> obj1, shared_ptr<Object> obj2) {
     return !(obj1 == obj2);
+  }
+
+  bool is_hashable(shared_ptr<Object> obj) {
+    return
+      obj->type() == INTEGER_OBJ ||
+      obj->type() == BOOLEAN_OBJ ||
+      obj->type() == STRING_OBJ;
   }
 }

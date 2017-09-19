@@ -36,6 +36,10 @@ auto test_boolean_object(shared_ptr<Object> obj, int expected) -> void {
   REQUIRE(static_pointer_cast<object::Boolean>(obj)->value == expected);
 }
 
+auto test_null_object(shared_ptr<Object> obj) -> void {
+  REQUIRE(obj->type() == NULL_OBJ);
+}
+
 TEST_CASE("test eval integer expression") {
   struct TestCase {
     string input;
@@ -118,5 +122,31 @@ TEST_CASE("test eval bang operator") {
   std::for_each(tests.cbegin(), tests.cend(), [](TestCase c) {
       auto evaluated = test_eval(c.input);
       test_boolean_object(evaluated, c.expected);
+    });
+}
+
+TEST_CASE("test eval if expression") {
+  struct TestCase {
+    string input;
+    int expected;
+  };
+
+  vector<TestCase> tests = {
+    {"if (true) { 10 }", 10},
+		{"if (false) { 10 }", 0},
+		{"if (1) { 10 }", 10},
+		{"if (1 < 2) { 10 }", 10},
+		{"if (1 > 2) { 10 }", 0},
+		{"if (1 > 2) { 10 } else { 20 }", 20},
+		{"if (1 < 2) { 10 } else { 20 }", 10}
+  };
+
+  std::for_each(tests.cbegin(), tests.cend(), [](TestCase c) {
+      auto evaluated = test_eval(c.input);
+      if (c.expected > 0) {
+        test_integer_object(evaluated, c.expected);
+      } else {
+        test_null_object(evaluated);
+      }
     });
 }

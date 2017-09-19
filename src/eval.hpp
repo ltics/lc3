@@ -2,6 +2,7 @@
 #include "object.hpp"
 #include "builtins.hpp"
 #include "fmt/format.h"
+#include <map>
 #include <vector>
 #include <memory>
 
@@ -275,6 +276,29 @@ namespace eval {
     }
   }
 
+  auto eval_hash_literal(shared_ptr<HashLiteral> hash_expr, shared_ptr<Environment> env) -> shared_ptr<Object> {
+    map<HashKey, HashPair> pairs = {};
+    for (auto iter = hash_expr->pairs.begin(); iter != hash_expr->pairs.end(); iter++) {
+      auto key_obj = eval(iter->first, env);
+      if (is_error(key_obj)) {
+        return key_obj;
+      }
+
+      if (!is_hashable(key_obj)) {
+        return make_shared<Error>(format("unusable as hash key_obj: {0}", key_obj->type()));
+      }
+
+      auto value_obj = eval(iter->second, env);
+      if (is_error(value_obj)) {
+        return value_obj;
+      }
+
+      auto hashed = static_pointer_cast<Hashable>(key_obj)->hash_key();
+      pairs[hashed] = HashPair(key_obj, value_obj);
+    }
+    return make_shared<Hash>(pairs);
+}
+
   auto eval(shared_ptr<Node> node, shared_ptr<Environment> env) -> shared_ptr<Object> {
     switch (node->type()) {
     case NodeType::PROGRAM:
@@ -374,9 +398,8 @@ namespace eval {
       }
       return eval_index_expression(left_obj, index_obj);
     }
-    case NodeType::HASHLITERAL: {
-      return nullptr;
-    }
+    case NodeType::HASHLITERAL:
+      return eval_hash_literal(static_pointer_cast<HashLiteral>(node), env);
     default:
       return nullptr;
     }

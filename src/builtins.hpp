@@ -1,9 +1,15 @@
+#pragma once
+
 #include "object.hpp"
-#include "fmt/format.h"
 #include <map>
 #include <string>
 #include <vector>
 #include <iostream>
+#ifndef FORMAT_HEADER
+#define FORMAT_HEADER
+#include <fmt/format.h>
+#include <fmt/format.cc>
+#endif
 #include <range/v3/all.hpp>
 
 using namespace std;

@@ -6,11 +6,15 @@
 #include "ast.hpp"
 #include "lexer.hpp"
 #include "parser.hpp"
+#include "object.hpp"
+#include "eval.hpp"
 
 using namespace std;
 using namespace ast;
 using namespace lexer;
 using namespace parser;
+using namespace object;
+using namespace eval;
 
 namespace repl {
   auto check_parser_errors(shared_ptr<Parser> p) -> bool {
@@ -41,7 +45,12 @@ namespace repl {
       if (check_parser_errors(p)) {
         continue;
       }
-      cout << program->to_string() << endl;
+
+      auto env = make_shared<Environment>();
+      auto evaluated = eval::eval(program, env);
+      if (evaluated != nullptr) {
+        cout << evaluated->inspect() << endl;
+      }
 
       free(input);
     }

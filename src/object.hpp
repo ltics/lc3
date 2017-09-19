@@ -5,6 +5,7 @@
 #include <vector>
 #include <string>
 #include <memory>
+#include <utility>
 #include <sstream>
 #include <iostream>
 #include <functional>
@@ -31,6 +32,7 @@ namespace object {
   }
 
   typedef string ObjectType;
+  typedef string HashKey;
 
   const ObjectType NULL_OBJ  = "NULL";
   const ObjectType ERROR_OBJ = "ERROR";
@@ -77,22 +79,6 @@ namespace object {
 
   typedef function<shared_ptr<Object>(vector<shared_ptr<Object>> args)> BuiltinFunction;
 
-  class HashKey {
-  public:
-    ObjectType type;
-    unsigned int value;
-
-    HashKey(ObjectType t, unsigned int v): type(t), value(v) {};
-  };
-
-  bool operator==(const HashKey& key1, const HashKey& key2) {
-    return key1.type == key2.type && key1.value == key2.value;
-  }
-
-  bool operator!=(const HashKey& key1, const HashKey& key2) {
-    return !(key1 == key2);
-  }
-
   class Hashable {
   public:
     virtual HashKey hash_key() = 0;
@@ -115,7 +101,11 @@ namespace object {
     }
 
     HashKey hash_key() {
-      return HashKey(this->type(), this->value);
+      stringstream ss;
+      ss << this->type();
+      ss << "-";
+      ss << this->value;
+      return ss.str();
     }
   };
 
@@ -136,7 +126,11 @@ namespace object {
     }
 
     HashKey hash_key() {
-      return HashKey(this->type(), this->value ? 1 : 0);
+      stringstream ss;
+      ss << this->type();
+      ss << "-";
+      ss << (this->value ? 1 : 0);
+      return ss.str();
     }
   };
 
@@ -229,7 +223,12 @@ namespace object {
 
     HashKey hash_key() {
       size_t value_hash = hash<string>{}(this->value);
-      return HashKey(this->value, static_cast<int>(value_hash));
+
+      stringstream ss;
+      ss << this->type();
+      ss << "-";
+      ss << value_hash;
+      return ss.str();
     }
   };
 
@@ -273,15 +272,7 @@ namespace object {
     }
   };
 
-  class HashPair {
-  public:
-    shared_ptr<Object> key;
-    shared_ptr<Object> value;
-
-    HashPair(shared_ptr<Object> k,
-             shared_ptr<Object> v)
-      : key(k), value(v) {};
-  };
+  typedef pair<shared_ptr<Object>, shared_ptr<Object>> HashPair;
 
   class Hash : public Object {
   public:
@@ -297,9 +288,9 @@ namespace object {
       string s("");
       vector<string> pairs_strs = pairs | view::transform([](pair<HashKey, HashPair> p) {
           string pair_str;
-          pair_str += p.second.key->inspect();
+          pair_str += p.second.first->inspect();
           pair_str += ": ";
-          pair_str += p.second.key->inspect();
+          pair_str += p.second.second->inspect();
           return pair_str;
         });
 
@@ -345,8 +336,8 @@ namespace object {
                entry1 != pairs1.end();
                ++entry1 , ++entry2) {
             if (!(entry1->first == entry2->first &&
-                  entry1->second.key == entry2->second.key &&
-                  entry1->second.value == entry2->second.value)) {
+                  entry1->second.first == entry2->second.first &&
+                  entry1->second.second == entry2->second.second)) {
               return false;
             }
           }

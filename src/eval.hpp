@@ -1,10 +1,16 @@
+#pragma once
+
 #include "ast.hpp"
 #include "object.hpp"
 #include "builtins.hpp"
-#include "fmt/format.h"
 #include <map>
 #include <vector>
 #include <memory>
+#ifndef FORMAT_HEADER
+#define FORMAT_HEADER
+#include <fmt/format.h>
+#include <fmt/format.cc>
+#endif
 
 using namespace std;
 using namespace ast;
@@ -209,7 +215,7 @@ namespace eval {
     return result;
   }
 
-  auto extend_function_env(shared_ptr<Function> func, vector<shared_ptr<Object>> args) -> shared_ptr<Environment> {
+  auto extend_function_env(shared_ptr<object::Function> func, vector<shared_ptr<Object>> args) -> shared_ptr<Environment> {
     auto env = new_enclosed_environment(func->env);
     for (int i = 0; i <= func->parameters.size(); i++) {
       env->set(func->parameters[i]->value, args[i]);
@@ -228,7 +234,7 @@ namespace eval {
 
   auto apply_function(shared_ptr<Object> obj, vector<shared_ptr<Object>> args) -> shared_ptr<Object> {
     if (obj->type() == FUNCTION_OBJ) {
-      auto func = static_pointer_cast<Function>(obj);
+      auto func = static_pointer_cast<object::Function>(obj);
       auto extended_env = extend_function_env(func, args);
       auto evaluated = eval(func->body, extended_env);
       return unwrap_return_value(evaluated);
@@ -253,10 +259,10 @@ namespace eval {
   auto eval_hash_index_expression(shared_ptr<Hash> hash, shared_ptr<Object> index) -> shared_ptr<Object> {
     if (is_hashable(index)) {
       auto pairs = hash->pairs;
-      auto key = static_pointer_cast<Hashable>(index)->hash_key();
+      auto key = dynamic_pointer_cast<Hashable>(index)->hash_key();
       auto result = pairs.find(key);
       if (result != pairs.end()) {
-        return result->second.value;
+        return result->second.second;
       } else {
         return NULLOBJ;
       }
@@ -293,8 +299,8 @@ namespace eval {
         return value_obj;
       }
 
-      auto hashed = static_pointer_cast<Hashable>(key_obj)->hash_key();
-      pairs[hashed] = HashPair(key_obj, value_obj);
+      auto hashed = dynamic_pointer_cast<Hashable>(key_obj)->hash_key();
+      pairs[hashed] = make_pair(key_obj, value_obj);
     }
     return make_shared<Hash>(pairs);
 }
@@ -362,7 +368,7 @@ namespace eval {
       auto params = func_expr->parameters;
       auto body = func_expr->body;
       // closure here, save the current context
-      return make_shared<Function>(params, body, env);
+      return make_shared<object::Function>(params, body, env);
     }
     case NodeType::CALLEXPRESSION: {
       auto call_expr = static_pointer_cast<CallExpression>(node);

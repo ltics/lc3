@@ -31,6 +31,11 @@ auto test_integer_object(shared_ptr<Object> obj, int expected) -> void {
   REQUIRE(static_pointer_cast<Integer>(obj)->value == expected);
 }
 
+auto test_boolean_object(shared_ptr<Object> obj, int expected) -> void {
+  REQUIRE(obj->type() == BOOLEAN_OBJ);
+  REQUIRE(static_pointer_cast<object::Boolean>(obj)->value == expected);
+}
+
 TEST_CASE("test eval integer expression") {
   struct TestCase {
     string input;
@@ -58,5 +63,60 @@ TEST_CASE("test eval integer expression") {
   std::for_each(tests.cbegin(), tests.cend(), [](TestCase c) {
       auto evaluated = test_eval(c.input);
       test_integer_object(evaluated, c.expected);
+    });
+}
+
+TEST_CASE("test eval boolean expression") {
+  struct TestCase {
+    string input;
+    bool expected;
+  };
+
+  vector<TestCase> tests = {
+    { "true", true },
+		{ "false", false },
+		{ "1 < 2", true },
+		{ "1 > 2", false },
+		{ "1 < 1", false },
+		{ "1 > 1", false },
+		{ "1 == 1", true },
+		{ "1 != 1", false },
+		{ "1 == 2", false },
+		{ "1 != 2", true },
+		{ "true == true", true },
+		{ "false == false", true },
+		{ "true == false", false },
+		{ "true != false", true },
+		{ "false != true", true },
+		{ "(1 < 2) == true", true },
+		{ "(1 < 2) == false", false },
+		{ "(1 > 2) == true", false },
+		{ "(1 > 2) == false", true }
+  };
+
+  std::for_each(tests.cbegin(), tests.cend(), [](TestCase c) {
+      auto evaluated = test_eval(c.input);
+      test_boolean_object(evaluated, c.expected);
+    });
+}
+
+TEST_CASE("test eval bang operator") {
+  struct TestCase {
+    string input;
+    bool expected;
+  };
+
+  vector<TestCase> tests = {
+    {"!true", false},
+		{"!false", true},
+		{"!5", false},
+		{"!!true", true},
+		{"!!false", false},
+		{"!!5", true}
+  };
+
+  std::for_each(tests.cbegin(), tests.cend(), [](TestCase c) {
+      auto evaluated = test_eval(c.input);
+      test_boolean_object(evaluated, c.expected);
     });
 }

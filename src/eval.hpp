@@ -99,7 +99,7 @@ namespace eval {
   }
 
   auto eval_minus_prefix_operator_expression(shared_ptr<Object> right) -> shared_ptr<Object> {
-    if (right->type() == INTEGER_OBJ) {
+    if (right->type() != INTEGER_OBJ) {
       return make_shared<Error>(format("unknown operator: -{0}", right->type()));
     } else {
       auto val = static_pointer_cast<Integer>(right)->value;

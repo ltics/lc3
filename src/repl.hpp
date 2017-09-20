@@ -34,6 +34,8 @@ namespace repl {
     cout << "lc3 Version 0.1" << endl;
     cout << "Press Ctrl+c to Exit\n" << endl;
 
+    auto env = make_shared<Environment>();
+
     while (1) {
       char* input = readline("lc3> ");
       add_history(input);
@@ -46,7 +48,6 @@ namespace repl {
         continue;
       }
 
-      auto env = make_shared<Environment>();
       auto evaluated = eval::eval(program, env);
       if (evaluated != nullptr) {
         cout << evaluated->inspect() << endl;

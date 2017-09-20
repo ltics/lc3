@@ -217,7 +217,7 @@ namespace eval {
 
   auto extend_function_env(shared_ptr<object::Function> func, vector<shared_ptr<Object>> args) -> shared_ptr<Environment> {
     auto env = new_enclosed_environment(func->env);
-    for (int i = 0; i <= func->parameters.size(); i++) {
+    for (int i = 0; i < func->parameters.size(); i++) {
       env->set(func->parameters[i]->value, args[i]);
     }
 

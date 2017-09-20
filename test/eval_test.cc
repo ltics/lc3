@@ -150,3 +150,40 @@ TEST_CASE("test eval if expression") {
       }
     });
 }
+
+TEST_CASE("test eval return statements") {
+  struct TestCase {
+    string input;
+    int expected;
+  };
+
+  vector<TestCase> tests = {
+    { "return 10;", 10},
+		{ "return 10; 9;", 10},
+		{ "return 2 * 5; 9;", 10},
+		{ "9; return 2 * 5; 9;", 10},
+		{ "if (10 > 1) { return 10; }", 10},
+		{ "if (10 > 1) { \
+         if (10 > 1) { \
+           return 10; \
+         } \
+         return 1; \
+       }", 10 },
+		{ "let f = fn(x) { \
+         return x; \
+         x + 10; \
+       }; \
+       f(10);", 10 },
+		{ "let f = fn(x) { \
+         let result = x + 10; \
+         return result; \
+         return 10; \
+       }; \
+       f(10);", 20 }
+  };
+
+  std::for_each(tests.cbegin(), tests.cend(), [](TestCase c) {
+      auto evaluated = test_eval(c.input);
+      test_integer_object(evaluated, c.expected);
+    });
+}

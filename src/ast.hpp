@@ -359,10 +359,8 @@ namespace ast {
     }
 
     string to_string() {
-      string s("");
-      std::for_each(statements.cbegin(), statements.cend(), [&](shared_ptr<Statement> stm) {
-          s += stm->to_string();
-        });
+      vector<string> strs = statements | view::transform([](shared_ptr<Statement> stmt) { return "  " + stmt->to_string(); });
+      string s = strs | view::join('\n');
       return s;
     }
   };

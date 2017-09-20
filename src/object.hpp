@@ -259,10 +259,7 @@ namespace object {
 
     string inspect() {
       string s("");
-      string elems("");
-      std::for_each(elements.cbegin(), elements.cend(), [&](shared_ptr<Object> e) {
-          elems += e->inspect();
-        });
+      string elems = flatten_strings(elements | view::transform([](shared_ptr<Object> o) { return o->inspect(); }));
 
       s += "[";
       s += elems;

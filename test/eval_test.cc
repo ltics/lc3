@@ -489,3 +489,76 @@ TEST_CASE("test array index expressions") {
       test_null_object(test_eval(input));
     });
 }
+
+TEST_CASE("test hash literals") {
+  auto input = "\
+    let two = \"two\"; \
+    { \
+      \"one\": 10 - 9, \
+      two: 1 + 1, \
+      \"thr\" + \"ee\": 6 / 2, \
+      4: 4, \
+      true: 5, \
+      false: 6 \
+    }";
+
+  auto evaluated = test_eval(input);
+  REQUIRE(evaluated->type() == HASH_OBJ);
+  auto hash = static_pointer_cast<Hash>(evaluated);
+
+  map<string, int> expected = {
+    { make_shared<String>("one")->hash_key(), 1 },
+    { make_shared<String>("two")->hash_key(), 2 },
+    { make_shared<String>("three")->hash_key(), 3 },
+    { make_shared<Integer>(4)->hash_key(), 4 },
+    { make_shared<object::Boolean>(true)->hash_key(), 5 },
+    { make_shared<object::Boolean>(false)->hash_key(), 6 }
+  };
+
+  std::for_each(expected.cbegin(), expected.cend(), [&](pair<string, int> p) {
+      test_integer_object(hash->pairs[p.first].second, p.second);
+    });
+}
+
+TEST_CASE("test hash index expressions") {
+  struct TestCase {
+    string input;
+    int expected;
+  };
+
+  vector<TestCase> tests = {
+    {
+      "{\"foo\": 5}[\"foo\"]",
+      5
+    },
+    {
+      "let key = \"foo\"; {\"foo\": 5}[key]",
+      5
+    },
+    {
+      "{5: 5}[5]",
+      5
+    },
+    {
+      "{true: 5}[true]",
+      5
+    },
+    {
+      "{false: 5}[false]",
+      5
+    }
+  };
+
+  vector<string> null_tests = {
+    "{\"foo\": 5}[\"bar\"]",
+    "{}[\"foo\"]"
+  };
+
+  std::for_each(tests.cbegin(), tests.cend(), [](TestCase c) {
+      test_integer_object(test_eval(c.input), c.expected);
+    });
+
+  std::for_each(null_tests.cbegin(), null_tests.cend(), [](string input) {
+      test_null_object(test_eval(input));
+    });
+}

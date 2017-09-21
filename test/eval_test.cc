@@ -228,11 +228,11 @@ TEST_CASE("test function application") {
 
   vector<TestCase> tests = {
     { "let identity = fn(x) { x; }; identity(5);", 5 },
-		{ "let identity = fn(x) { return x; }; identity(5);", 5 },
-		{ "let double = fn(x) { x * 2; }; double(5);", 10 },
-		{ "let add = fn(x, y) { x + y; }; add(5, 5);", 10 },
-		{ "let add = fn(x, y) { x + y; }; add(5 + 5, add(5, 5));", 20 },
-		{ "fn(x) { x; }(5)", 5 }
+    { "let identity = fn(x) { return x; }; identity(5);", 5 },
+    { "let double = fn(x) { x * 2; }; double(5);", 10 },
+    { "let add = fn(x, y) { x + y; }; add(5, 5);", 10 },
+    { "let add = fn(x, y) { x + y; }; add(5 + 5, add(5, 5));", 20 },
+    { "fn(x) { x; }(5)", 5 }
   };
 
   std::for_each(tests.cbegin(), tests.cend(), [](TestCase c) {
@@ -374,17 +374,17 @@ TEST_CASE("test builtin functions") {
 
   vector<IntTestCase> int_tests = {
     { "len(\"\")", 0 },
-		{ "len(\"four\")", 4 },
-		{ "len(\"hello world\")", 11 },
-		{ "len([1, 2, 3])", 3 },
-		{ "len([])", 0 },
-		{ "first([1, 2, 3])", 1 },
-		{ "last([1, 2, 3])", 3 }
+    { "len(\"four\")", 4 },
+    { "len(\"hello world\")", 11 },
+    { "len([1, 2, 3])", 3 },
+    { "len([])", 0 },
+    { "first([1, 2, 3])", 1 },
+    { "last([1, 2, 3])", 3 }
   };
 
   vector<StringTestCase> err_tests = {
     { "len(1)", "argument to `len` not supported, got INTEGER" },
-		{ "len(\"one\", \"two\")", "wrong number of arguments. got=2, want=1" },
+    { "len(\"one\", \"two\")", "wrong number of arguments. got=2, want=1" },
     { "first(1)", "argument to `first` must be ARRAY, got INTEGER" },
     { "last(1)", "argument to `last` must be ARRAY, got INTEGER" },
     { "push(1, 1)", "argument to `push` must be ARRAY, got INTEGER" }
@@ -397,9 +397,9 @@ TEST_CASE("test builtin functions") {
 
   vector<string> null_tests = {
     "puts(\"hello\", \"world!\")",
-		"first([])",
-		"last([])",
-		"rest([])"
+    "first([])",
+    "last([])",
+    "rest([])"
   };
 
   std::for_each(int_tests.cbegin(), int_tests.cend(), [](IntTestCase c) {
@@ -415,6 +415,74 @@ TEST_CASE("test builtin functions") {
           return static_pointer_cast<Integer>(obj)->value;
         });
       REQUIRE(int_arr == c.expected);
+    });
+
+  std::for_each(null_tests.cbegin(), null_tests.cend(), [](string input) {
+      test_null_object(test_eval(input));
+    });
+}
+
+TEST_CASE("test array literals") {
+  auto input = "[1, 2 * 2, 3 + 3]";
+  auto evaluated = test_eval(input);
+
+  REQUIRE(evaluated->type() == ARRAY_OBJ);
+  auto arr = static_pointer_cast<Array>(evaluated);
+
+  REQUIRE(arr->elements.size() == 3);
+  vector<int> int_arr = arr->elements | view::transform([](shared_ptr<Object> o) { return static_pointer_cast<Integer>(o)->value; });
+  vector<int> expected = { 1, 4, 6 };
+  REQUIRE(int_arr == expected);
+}
+
+TEST_CASE("test array index expressions") {
+  struct TestCase {
+    string input;
+    int expected;
+  };
+
+  vector<TestCase> tests = {
+    {
+      "[1, 2, 3][0]",
+      1
+    },
+    {
+      "[1, 2, 3][1]",
+      2
+    },
+    {
+      "[1, 2, 3][2]",
+      3
+    },
+    {
+      "let i = 0; [1][i];",
+      1
+    },
+    {
+      "[1, 2, 3][1 + 1];",
+      3
+    },
+    {
+      "let myArray = [1, 2, 3]; myArray[2];",
+      3
+    },
+    {
+      "let myArray = [1, 2, 3]; myArray[0] + myArray[1] + myArray[2];",
+      6
+    },
+    {
+      "let myArray = [1, 2, 3]; let i = myArray[0]; myArray[i]",
+      2
+    }
+  };
+
+  vector<string> null_tests = {
+    "[1, 2, 3][3]",
+    "[1, 2, 3][-1]"
+  };
+
+  std::for_each(tests.cbegin(), tests.cend(), [](TestCase c) {
+      test_integer_object(test_eval(c.input), c.expected);
     });
 
   std::for_each(null_tests.cbegin(), null_tests.cend(), [](string input) {

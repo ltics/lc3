@@ -359,9 +359,13 @@ namespace ast {
     }
 
     string to_string() {
-      vector<string> strs = statements | view::transform([](shared_ptr<Statement> stmt) { return "  " + stmt->to_string(); });
-      string s = strs | view::join('\n');
-      return s;
+      if (statements.size() == 1) {
+        return statements[0]->to_string();
+      } else {
+        vector<string> strs = statements | view::transform([](shared_ptr<Statement> stmt) { return "  " + stmt->to_string(); });
+        string s = strs | view::join('\n');
+        return s;
+      }
     }
   };
 

@@ -18,7 +18,7 @@ using namespace ranges;
 using namespace object;
 
 namespace builtins {
-  auto let_func(vector<shared_ptr<Object>> args) -> shared_ptr<Object> {
+  auto len_func(vector<shared_ptr<Object>> args) -> shared_ptr<Object> {
     if (args.size() != 1) {
       string msg = format("wrong number of arguments. got={0}, want=1", args.size());
       return make_shared<Error>(msg);
@@ -122,7 +122,7 @@ namespace builtins {
   }
 
   map<string, shared_ptr<Builtin>> builtins = {
-    { "let", make_shared<Builtin>(let_func) },
+    { "len", make_shared<Builtin>(len_func) },
     { "puts", make_shared<Builtin>(puts_func) },
     { "first", make_shared<Builtin>(first_func) },
     { "last", make_shared<Builtin>(last_func) },

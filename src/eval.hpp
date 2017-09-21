@@ -278,7 +278,7 @@ namespace eval {
     } else if (left->type() == HASH_OBJ) {
       return eval_hash_index_expression(static_pointer_cast<Hash>(left), index);
     } else {
-      return make_shared<Error>(format("index operator not supported: {0}"));
+      return make_shared<Error>(format("index operator not supported: {0}", left->type()));
     }
   }
 

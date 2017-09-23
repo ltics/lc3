@@ -3,6 +3,8 @@
 #include "ast.hpp"
 #include "object.hpp"
 #include "builtins.hpp"
+#include "quote_unquote.hpp"
+#include "modify.hpp"
 #include <map>
 #include <vector>
 #include <memory>
@@ -16,6 +18,8 @@ using namespace std;
 using namespace ast;
 using namespace fmt;
 using namespace object;
+using namespace modify;
+using namespace quoteunquote;
 
 namespace eval {
   shared_ptr<Object> NULLOBJ = make_shared<Null>();
@@ -23,6 +27,29 @@ namespace eval {
   shared_ptr<Object> FALSEOBJ = make_shared<object::Boolean>(false);
 
   auto eval(shared_ptr<Node> node, shared_ptr<Environment> env) -> shared_ptr<Object>;
+
+  auto quote(shared_ptr<Node> node, shared_ptr<Environment> env) -> shared_ptr<Object>;
+
+  auto eval_unquote_calls(shared_ptr<Node> quoted, shared_ptr<Environment> env) -> shared_ptr<Node> {
+    return modify::modify(quoted, [&](shared_ptr<Node> node) -> shared_ptr<Node> {
+        if (!is_unquote_call(node)) {
+          return node;
+        }
+
+        auto call = static_pointer_cast<CallExpression>(node);
+        if (call->arguments.size() != 1) {
+          return node;
+        }
+
+        auto unquoted = eval(call->arguments[0], env);
+        return convert_object_to_node(unquoted);
+      });
+  }
+
+  auto quote(shared_ptr<Node> node, shared_ptr<Environment> env) -> shared_ptr<Object> {
+    auto new_node = eval_unquote_calls(node, env);
+    return make_shared<Quote>(new_node);
+  }
 
   auto eval_program(shared_ptr<Program> program, shared_ptr<Environment> env) -> shared_ptr<Object> {
     shared_ptr<Object> result;
@@ -372,6 +399,11 @@ namespace eval {
     }
     case NodeType::CALLEXPRESSION: {
       auto call_expr = static_pointer_cast<CallExpression>(node);
+
+      if (call_expr->function->token_literal() == "quote") {
+        return quote(call_expr->arguments[0], env);
+      }
+
       auto func_obj = eval(call_expr->function, env);
       if (is_error(func_obj)) {
         return func_obj;

@@ -33,10 +33,9 @@ namespace ast {
   };
 
   class Node {
-  protected:
+  public:
     token::Token token;
 
-  public:
     Node() {
       token = {"empty", "empty"};
     };

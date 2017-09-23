@@ -10,9 +10,15 @@
 #include <iostream>
 #include <functional>
 #include <range/v3/all.hpp>
+#ifndef FORMAT_HEADER
+#define FORMAT_HEADER
+#include <fmt/format.h>
+#include <fmt/format.cc>
+#endif
 
 using namespace std;
 using namespace ast;
+using namespace fmt;
 using namespace ranges;
 
 namespace object {
@@ -44,6 +50,7 @@ namespace object {
   const ObjectType BUILTIN_OBJ  = "BUILTIN";
   const ObjectType ARRAY_OBJ = "ARRAY";
   const ObjectType HASH_OBJ  = "HASH";
+  const ObjectType QUOTE_OBJ = "QUOTE";
 
   class Object {
   public:
@@ -299,6 +306,21 @@ namespace object {
     }
   };
 
+  class Quote : public Object {
+  public:
+    shared_ptr<Node> node;
+
+    Quote(shared_ptr<Node> n): node(n) {};
+
+    string type() {
+      return QUOTE_OBJ;
+    }
+
+    string inspect() {
+      return format("QUOTE({0})", this->node->to_string());
+    }
+  };
+
   bool operator==(shared_ptr<Object> obj1, shared_ptr<Object> obj2) {
     if (obj1->type() != obj2->type()) {
       return false;
@@ -346,6 +368,8 @@ namespace object {
         return static_pointer_cast<Error>(obj1)->message == static_pointer_cast<Error>(obj2)->message;
       } else if (obj1->type() == NULL_OBJ) {
         return true;
+      } else if (obj1->type() == QUOTE_OBJ) {
+        return static_pointer_cast<Quote>(obj1)->node->to_string() == static_pointer_cast<Quote>(obj2)->node->to_string();
       } else {
         return false;
       }

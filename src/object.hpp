@@ -357,7 +357,7 @@ namespace object {
         auto elems1 = static_pointer_cast<Array>(obj1)->elements;
         auto elems2 = static_pointer_cast<Array>(obj2)->elements;
         if (elems1.size() == elems2.size()) {
-          for (int i = 0; i < elems1.size(); i++) {
+          for (size_t i = 0; i < elems1.size(); i++) {
             if (!(elems1[i] == elems2[i])) {
               return false;
             }

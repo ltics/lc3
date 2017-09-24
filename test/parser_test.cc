@@ -461,7 +461,7 @@ TEST_CASE("test parse function parameters") {
       shared_ptr<FunctionLiteral> func = static_pointer_cast<FunctionLiteral>(stmt->expression);
       REQUIRE(func->parameters.size() == c.expected_params.size());
 
-      for (int i = 0; i < c.expected_params.size(); i++) {
+      for (size_t i = 0; i < c.expected_params.size(); i++) {
         test_literal_expression(func->parameters.at(i), TestVariant(c.expected_params[i]));
       }
     });

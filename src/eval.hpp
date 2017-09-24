@@ -232,7 +232,7 @@ namespace eval {
 
   auto eval_expressions(vector<shared_ptr<Expression>> exprs, shared_ptr<Environment> env) {
     vector<shared_ptr<Object>> result = {};
-    for (int i = 0; i < exprs.size(); i++) {
+    for (size_t i = 0; i < exprs.size(); i++) {
       auto evaluated = eval(exprs[i], env);
       if (is_error(evaluated)) {
         return vector<shared_ptr<Object>>({ evaluated });
@@ -244,7 +244,7 @@ namespace eval {
 
   auto extend_function_env(shared_ptr<object::Function> func, vector<shared_ptr<Object>> args) -> shared_ptr<Environment> {
     auto env = new_enclosed_environment(func->env);
-    for (int i = 0; i < func->parameters.size(); i++) {
+    for (size_t i = 0; i < func->parameters.size(); i++) {
       env->set(func->parameters[i]->value, args[i]);
     }
 
@@ -274,7 +274,7 @@ namespace eval {
   }
 
   auto eval_array_index_expression(shared_ptr<Array> arr, shared_ptr<Integer> index) -> shared_ptr<Object> {
-    auto max = arr->elements.size() - 1;
+    auto max = static_cast<int>(arr->elements.size() - 1);
     auto idx = index->value;
     if (idx < 0 || idx > max) {
       return NULLOBJ;

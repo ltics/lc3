@@ -54,6 +54,7 @@ namespace token {
   const TokenType IF = "IF";
   const TokenType ELSE = "ELSE";
   const TokenType RETURN = "RETURN";
+  const TokenType MACRO = "MACRO";
 
   map<TokenLiteral, TokenType> token_type = {
     { "fn", FUNCTION },
@@ -62,7 +63,8 @@ namespace token {
     { "false", FALSET },
     { "if", IF },
     { "else", ELSE },
-    { "return", RETURN }
+    { "return", RETURN },
+    { "macro", MACRO }
   };
 
   auto lookup_indent_type(TokenLiteral ident) -> TokenType {

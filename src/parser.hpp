@@ -81,6 +81,7 @@ namespace parser {
     auto parse_if_expression() -> shared_ptr<ast::Expression>;
     auto parse_block_statement() -> shared_ptr<ast::BlockStatement>;
     auto parse_function_literal() -> shared_ptr<ast::Expression>;
+    auto parse_macro_literal() -> shared_ptr<ast::Expression>;
     auto parse_function_parameters() -> vector<shared_ptr<ast::Identifier>>;
     auto parse_call_expression(shared_ptr<ast::Expression> func) -> shared_ptr<ast::Expression>;
     auto parse_expression_list(token::TokenType end) -> vector<shared_ptr<ast::Expression>>;
@@ -108,6 +109,7 @@ namespace parser {
     this->register_prefix(token::LPAREN, std::bind(&Parser::parse_grouped_expression, this));
     this->register_prefix(token::IF, std::bind(&Parser::parse_if_expression, this));
     this->register_prefix(token::FUNCTION, std::bind(&Parser::parse_function_literal, this));
+    this->register_prefix(token::MACRO, std::bind(&Parser::parse_macro_literal, this));
     this->register_prefix(token::LBRACKET, std::bind(&Parser::parse_array_literal, this));
     this->register_prefix(token::LBRACE, std::bind(&Parser::parse_hash_literal, this));
 
@@ -420,6 +422,25 @@ namespace parser {
     auto body = this->parse_block_statement();
 
     return make_shared<ast::FunctionLiteral>(current_token, parameters, body);
+  }
+
+  // pretty much like the parse_function_literal
+  auto Parser::parse_macro_literal() -> shared_ptr<ast::Expression> {
+    auto current_token = this->current_token;
+
+    if (!this->expect_peek(token::LPAREN)) {
+      return nullptr;
+    }
+
+    auto parameters = this->parse_function_parameters();
+
+    if (!this->expect_peek(token::LBRACE)) {
+      return nullptr;
+    }
+
+    auto body = this->parse_block_statement();
+
+    return make_shared<ast::MacroLiteral>(current_token, parameters, body);
   }
 
   auto Parser::parse_function_parameters() -> vector<shared_ptr<ast::Identifier>> {

@@ -51,6 +51,7 @@ namespace object {
   const ObjectType ARRAY_OBJ = "ARRAY";
   const ObjectType HASH_OBJ  = "HASH";
   const ObjectType QUOTE_OBJ = "QUOTE";
+  const ObjectType MACRO_OBJ = "MACRO";
 
   class Object {
   public:
@@ -199,10 +200,8 @@ namespace object {
 
     string inspect() {
       string s("");
-      string params("");
-      std::for_each(parameters.cbegin(), parameters.cend(), [&](shared_ptr<Identifier> param) {
-          params += param->to_string();
-        });
+
+      string params = flatten_strings(parameters | view::transform([](shared_ptr<Identifier> o) { return o->to_string(); }));
 
       s += "fn(";
       s += params;
@@ -318,6 +317,27 @@ namespace object {
 
     string inspect() {
       return format("QUOTE({0})", this->node->to_string());
+    }
+  };
+
+  class Macro : public Object {
+  public:
+    vector<shared_ptr<Identifier>> parameters;
+    shared_ptr<BlockStatement> body;
+    shared_ptr<Environment> env;
+
+    Macro(vector<shared_ptr<Identifier>> ps,
+          shared_ptr<BlockStatement> b,
+          shared_ptr<Environment> e)
+      : parameters(ps), body(b), env(e) {};
+
+    string type() {
+      return MACRO_OBJ;
+    }
+
+    string inspect() {
+      string params = flatten_strings(parameters | view::transform([](shared_ptr<Identifier> o) { return o->to_string(); }));
+      return format("macro({0}) {\n{1}\n}", params, this->body->to_string());
     }
   };
 

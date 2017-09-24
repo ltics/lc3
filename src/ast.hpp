@@ -5,8 +5,14 @@
 #include <vector>
 #include <algorithm>
 #include <range/v3/all.hpp>
+#ifndef FORMAT_HEADER
+#define FORMAT_HEADER
+#include <fmt/format.h>
+#include <fmt/format.cc>
+#endif
 
 using namespace std;
+using namespace fmt;
 using namespace ranges;
 
 namespace ast {
@@ -29,7 +35,8 @@ namespace ast {
     CALLEXPRESSION,
     ARRAYLITERAL,
     INDEXEXPRESSION,
-    HASHLITERAL
+    HASHLITERAL,
+    MACROLITERAL
   };
 
   class Node {
@@ -534,6 +541,27 @@ namespace ast {
       s += literal;
       s += "}";
       return s;
+    }
+  };
+
+  class MacroLiteral : public Expression {
+  public:
+    vector<shared_ptr<Identifier>> parameters;
+    shared_ptr<BlockStatement> body;
+
+    MacroLiteral(token::Token t, vector<shared_ptr<Identifier>> ps, shared_ptr<BlockStatement> b): Expression(t), parameters(ps), body(b) {};
+
+    NodeType type() {
+      return NodeType::MACROLITERAL;
+    }
+
+    string token_literal() {
+      return this->token.literal;
+    }
+
+    string to_string() {
+      string literal = flatten_expressions(parameters | view::transform([](shared_ptr<Identifier> a) { return static_pointer_cast<Expression>(a); }));
+      return format("{0}({1}) {2}", this->token_literal(), literal, this->body->to_string());
     }
   };
 }

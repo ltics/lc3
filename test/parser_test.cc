@@ -611,3 +611,31 @@ TEST_CASE("test parse hash literal with expression") {
       test_func(p.second);
     });
 }
+
+TEST_CASE("test parse macro literal") {
+  auto input = "macro(x, y) { x + y; }";
+  shared_ptr<Program> program = generate_and_check_program(input);
+
+  REQUIRE(program->statements.size() == 1);
+  REQUIRE(program->statements[0]->type() == NodeType::EXPRESSIONSTATEMENT);
+  auto stmt = static_pointer_cast<ExpressionStatement>(program->statements[0]);
+
+  REQUIRE(stmt->expression->type() == NodeType::MACROLITERAL);
+  auto macro = static_pointer_cast<MacroLiteral>(stmt->expression);
+
+  REQUIRE(macro->parameters.size() == 2);
+  string x_str("x");
+  TestVariant x_var(x_str);
+  string y_str("y");
+  TestVariant y_var(y_str);
+
+  REQUIRE(test_literal_expression(macro->parameters[0], x_var));
+  REQUIRE(test_literal_expression(macro->parameters[1], y_var));
+
+  REQUIRE(macro->body->statements.size() == 1);
+  REQUIRE(macro->body->statements[0]->type() == NodeType::EXPRESSIONSTATEMENT);
+
+  auto body = static_pointer_cast<ExpressionStatement>(macro->body->statements[0]);
+
+  test_infix_expression(body->expression, x_var, "+", y_var);
+}

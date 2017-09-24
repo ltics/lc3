@@ -33,7 +33,8 @@ TEST_CASE("lexer test") {
     "\"foobar\"\n",
     "\"foo bar\"\n",
     "[1, 2];\n",
-    "{\"foo\": \"bar\"}"
+    "{\"foo\": \"bar\"}",
+    "macro(x, y) { x + y; };"
   };
 
   string input;
@@ -128,6 +129,19 @@ TEST_CASE("lexer test") {
     { token::COLON, ":" },
     { token::STRING, "bar" },
     { token::RBRACE, "}" },
+    { token::MACRO, "macro" },
+    { token::LPAREN, "(" },
+    { token::IDENT, "x" },
+    { token::COMMA, "," },
+    { token::IDENT, "y" },
+    { token::RPAREN, ")" },
+    { token::LBRACE, "{" },
+    { token::IDENT, "x" },
+    { token::PLUS, "+" },
+    { token::IDENT, "y" },
+    { token::SEMICOLON, ";" },
+    { token::RBRACE, "}" },
+    { token::SEMICOLON, ";" },
     { token::EOFT, string(1, '\0') } // literally string(1, '\0') and "" are identical, but dunno why can not pass the equality checking
   };
 

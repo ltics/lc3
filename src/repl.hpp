@@ -8,6 +8,7 @@
 #include "parser.hpp"
 #include "object.hpp"
 #include "eval.hpp"
+#include "macro_expansion.hpp"
 
 using namespace std;
 using namespace ast;
@@ -15,6 +16,7 @@ using namespace lexer;
 using namespace parser;
 using namespace object;
 using namespace eval;
+using namespace macroexpansion;
 
 namespace repl {
   auto check_parser_errors(shared_ptr<Parser> p) -> bool {
@@ -35,6 +37,7 @@ namespace repl {
     cout << "Press Ctrl+c to Exit\n" << endl;
 
     auto env = make_shared<Environment>();
+    auto macro_env = make_shared<Environment>();
 
     while (1) {
       char* input = readline("lc3> ");
@@ -48,9 +51,15 @@ namespace repl {
         continue;
       }
 
-      auto evaluated = eval::eval(program, env);
-      if (evaluated != nullptr) {
-        cout << evaluated->inspect() << endl;
+      try {
+        define_macros(program, macro_env);
+        auto expanded = expand_macros(program, macro_env);
+        auto evaluated = eval::eval(expanded, env);
+        if (evaluated != nullptr) {
+          cout << evaluated->inspect() << endl;
+        }
+      } catch (std::runtime_error &e) {
+        cout << "runtime error: " << e.what () << endl;
       }
 
       free(input);

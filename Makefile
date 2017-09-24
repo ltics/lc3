@@ -2,7 +2,7 @@ CC=c++
 FLAG=-Wall -std=c++14 -I./include/range-v3/include -I./include/catch/single_include -I./include/fmt
 MAIN=main
 TEST=test
-OBJS=token.o lexer.o ast.o parser.o object.o builtins.o modify.o quote_unquote.o eval.o repl.o main.o
+OBJS=token.o lexer.o ast.o parser.o object.o builtins.o modify.o quote_unquote.o eval.o macro_expansion.o repl.o main.o
 
 .PHONY: test clean all
 
@@ -36,6 +36,9 @@ quote_unquote.o:
 
 eval.o:
 	$(CC) $(FLAG) -c ./src/eval.hpp
+
+macro_expansion.o:
+	$(CC) $(FLAG) -c ./src/macro_expansion.hpp
 
 repl.o: lexer.o
 	$(CC) $(FLAG) -c ./src/repl.hpp

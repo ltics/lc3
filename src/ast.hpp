@@ -398,8 +398,7 @@ namespace ast {
       s += " ";
       s += this->consequence->to_string();
       if (this->alternative != nullptr) {
-        s += "else";
-        s += " ";
+        s += " else ";
         s += this->alternative->to_string();
       }
       return s;

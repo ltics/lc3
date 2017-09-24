@@ -110,8 +110,9 @@ namespace modify {
       break;
     }
     default:
+      modified = node;
       break;
     }
-    return modifier(node);
+    return modifier(modified);
   }
 }

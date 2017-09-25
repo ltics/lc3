@@ -170,7 +170,7 @@ namespace ast {
     }
 
     string to_string() {
-      return this->token_literal();
+      return format("{}", this->value);
     }
   };
 
@@ -189,7 +189,7 @@ namespace ast {
     }
 
     string to_string() {
-      return this->token_literal();
+      return format("{}", this->value);
     }
   };
 
@@ -208,7 +208,7 @@ namespace ast {
     }
 
     string to_string() {
-      return this->token_literal();
+      return format("{}", this->value);
     }
   };
 
@@ -248,7 +248,8 @@ namespace ast {
 
     InfixExpression(token::Token t,
                     shared_ptr<Expression> l,
-                    string o, shared_ptr<Expression> r)
+                    string o,
+                    shared_ptr<Expression> r)
       : Expression(t), left(l), infix_operator(o), right(r) {};
 
     NodeType type() {
@@ -381,7 +382,14 @@ namespace ast {
     shared_ptr<BlockStatement> consequence;
     shared_ptr<BlockStatement> alternative;
 
-    IfExpression(token::Token t, shared_ptr<Expression> cond, shared_ptr<BlockStatement> cons, shared_ptr<BlockStatement> alt): Expression(t), condition(cond), consequence(cons), alternative(alt) {};
+    IfExpression(token::Token t,
+                 shared_ptr<Expression> cond,
+                 shared_ptr<BlockStatement> cons,
+                 shared_ptr<BlockStatement> alt)
+      : Expression(t),
+        condition(cond),
+        consequence(cons),
+        alternative(alt) {};
 
     NodeType type() {
       return NodeType::IFEXPRESSION;

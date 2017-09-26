@@ -1,3 +1,3 @@
 #!/bin/bash
 make all
-./main
+./lc3 repl

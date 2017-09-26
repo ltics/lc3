@@ -1,3 +1,6 @@
+#include "../src/lexer.hpp"
+#include "../src/parser.hpp"
+#include "../src/eval.hpp"
 #include <iostream>
 #include <memory>
 #include <map>
@@ -5,8 +8,20 @@
 #include <string>
 
 using namespace std;
+using namespace lexer;
+using namespace parser;
+using namespace eval;
 
 namespace testutil {
+  auto test_eval(string input) -> shared_ptr<Object> {
+    auto lexer = Lexer::new_lexer(input);
+    auto parser = Parser::new_parser(lexer);
+    auto program = parser->parse_program();
+    auto env = make_shared<Environment>();
+
+    return eval::eval(program, env);
+  }
+
   struct TestVariant {
     enum { t_string, t_int, t_bool } type_id;
     union {

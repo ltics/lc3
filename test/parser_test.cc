@@ -51,7 +51,7 @@ auto test_identifier(shared_ptr<Expression> expr, TestVariant value) -> bool {
 }
 
 auto test_boolean_literal(shared_ptr<Expression> expr, TestVariant value) -> bool {
-  shared_ptr<Boolean> bool_expr = static_pointer_cast<Boolean>(expr);
+  shared_ptr<ast::Boolean> bool_expr = static_pointer_cast<ast::Boolean>(expr);
   return bool_expr->value == value.as_bool;
 }
 
@@ -561,7 +561,7 @@ TEST_CASE("test parse hash literal boolean keys") {
   };
 
   std::for_each(hash->pairs.cbegin(), hash->pairs.cend(), [&](pair<shared_ptr<Expression>, shared_ptr<Expression>> const &p) {
-      shared_ptr<Boolean> key = static_pointer_cast<Boolean>(p.first);
+      shared_ptr<ast::Boolean> key = static_pointer_cast<ast::Boolean>(p.first);
       int expected_value = expected[key->to_string()];
       test_integer_literal(p.second, TestVariant(expected_value));
     });

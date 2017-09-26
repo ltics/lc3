@@ -56,6 +56,7 @@ test:
 	$(CC) $(FLAG) ./test/parser_test.cc && ./a.out
 	$(CC) $(FLAG) ./test/eval_test.cc && ./a.out
 	$(CC) $(FLAG) ./test/modify_test.cc && ./a.out
+	$(CC) $(FLAG) ./test/quote_unquote_test.cc && ./a.out
 
 clean:
 	rm *.o *.out $(MAIN)

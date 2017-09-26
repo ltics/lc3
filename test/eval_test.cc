@@ -17,15 +17,6 @@ using namespace object;
 using namespace eval;
 using namespace testutil;
 
-auto test_eval(string input) -> shared_ptr<Object> {
-  auto lexer = Lexer::new_lexer(input);
-  auto parser = Parser::new_parser(lexer);
-  auto program = parser->parse_program();
-  auto env = make_shared<Environment>();
-
-  return eval::eval(program, env);
-}
-
 auto test_integer_object(shared_ptr<Object> obj, int expected) -> void {
   REQUIRE(obj->type() == INTEGER_OBJ);
   REQUIRE(static_pointer_cast<Integer>(obj)->value == expected);

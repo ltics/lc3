@@ -1,0 +1,15 @@
+let factorial = fn (n) {
+  if (n > 0) {
+    return n * factorial(n - 1);
+  } else {
+    return 1;
+  }
+};
+
+let unless = macro(condition, consequence, alternative) {
+  quote(if (!(unquote(condition))) {
+          unquote(consequence);
+        } else {
+          unquote(alternative);
+        });
+};

@@ -57,6 +57,7 @@ test:
 	$(CC) $(FLAG) ./test/eval_test.cc && ./a.out
 	$(CC) $(FLAG) ./test/modify_test.cc && ./a.out
 	$(CC) $(FLAG) ./test/quote_unquote_test.cc && ./a.out
+	$(CC) $(FLAG) ./test/macro_expansion_test.cc && ./a.out
 
 clean:
 	rm *.o *.out $(MAIN)

@@ -64,7 +64,7 @@ namespace macroexpansion {
   auto extend_macro_env(shared_ptr<Macro> macro, vector<shared_ptr<Quote>> args) -> shared_ptr<Environment> {
     auto extended = new_enclosed_environment(macro->env);
 
-    for (int i = 0; i < macro->parameters.size(); i++) {
+    for (size_t i = 0; i < macro->parameters.size(); i++) {
       extended->set(macro->parameters[i]->value, args[i]);
     }
 

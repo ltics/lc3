@@ -342,7 +342,9 @@ namespace object {
   };
 
   bool operator==(shared_ptr<Object> obj1, shared_ptr<Object> obj2) {
-    if (obj1->type() != obj2->type()) {
+    if (obj1 == nullptr && obj2 == nullptr) {
+      return true;
+    } else if (obj1->type() != obj2->type() || obj1 == nullptr || obj2 == nullptr) {
       return false;
     } else {
       if (obj1->type() == INTEGER_OBJ) {

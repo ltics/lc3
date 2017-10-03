@@ -30,9 +30,9 @@ namespace testutil {
       string as_string;
     };
 
-    TestVariant(int v) : type_id{t_int}, as_int{v} {}
-    TestVariant(bool v) : type_id{t_bool}, as_bool{v} {}
-    TestVariant(string v) : type_id{t_string}, as_string{v} {}
+    explicit TestVariant(int v) : type_id{t_int}, as_int{v} {}
+    explicit TestVariant(bool v) : type_id{t_bool}, as_bool{v} {}
+    explicit TestVariant(const string &v) : type_id{t_string}, as_string{v} {}
     ~TestVariant()
     {
       switch(type_id)
@@ -45,7 +45,8 @@ namespace testutil {
           as_string.~basic_string();
           break;
         default:
-          throw std::runtime_error("unknown type");
+          //throw std::runtime_error("unknown type");
+          break;
         }
     }
 
@@ -65,6 +66,26 @@ namespace testutil {
       default:
         throw std::runtime_error("unknown type");
       }
+    }
+
+    TestVariant &operator=(const TestVariant &other) {
+      if (this->type_id == other.type_id) {
+        switch (this->type_id) {
+        case t_string:
+          this->as_string = other.as_string;
+          break;
+        case t_int:
+          this->as_int = other.as_int;
+          break;
+        case t_bool:
+          this->as_bool = other.as_bool;
+          break;
+        default:
+          throw std::runtime_error("unknown type");
+        }
+      }
+
+      return *this;
     }
   };
 }

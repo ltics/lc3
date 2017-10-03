@@ -96,7 +96,7 @@ namespace object {
   public:
     int value;
 
-    Integer(int v): value(v) {};
+    explicit Integer(int v): value(v) {};
 
     ObjectType type() {
       return INTEGER_OBJ;
@@ -121,7 +121,7 @@ namespace object {
   public:
     bool value;
 
-    Boolean(bool v): value(v) {};
+    explicit Boolean(bool v): value(v) {};
 
     ObjectType type() {
       return BOOLEAN_OBJ;
@@ -157,7 +157,7 @@ namespace object {
   public:
     shared_ptr<Object> value;
 
-    ReturnValue(shared_ptr<Object> v): value(v) {};
+    explicit ReturnValue(shared_ptr<Object> v): value(v) {};
 
     ObjectType type() {
       return RETURN_VALUE_OBJ;
@@ -172,7 +172,7 @@ namespace object {
   public:
     string message;
 
-    Error(string m): message(m) {};
+    explicit Error(const string &m): message(m) {};
 
     ObjectType type() {
       return ERROR_OBJ;
@@ -189,7 +189,7 @@ namespace object {
     shared_ptr<BlockStatement> body;
     shared_ptr<Environment> env;
 
-    Function(vector<shared_ptr<Identifier>> ps,
+    Function(const vector<shared_ptr<Identifier>> &ps,
              shared_ptr<BlockStatement> b,
              shared_ptr<Environment> e)
       : parameters(ps), body(b), env(e) {};
@@ -217,7 +217,7 @@ namespace object {
   public:
     string value;
 
-    String(string v): value(v) {};
+    explicit String(const string &v): value(v) {};
 
     ObjectType type() {
       return STRING_OBJ;
@@ -242,7 +242,7 @@ namespace object {
   public:
     BuiltinFunction func;
 
-    Builtin(BuiltinFunction f): func(f) {};
+    explicit Builtin(const BuiltinFunction &f): func(f) {};
 
     ObjectType type() {
       return BUILTIN_OBJ;
@@ -257,7 +257,7 @@ namespace object {
   public:
     vector<shared_ptr<Object>> elements;
 
-    Array(vector<shared_ptr<Object>> es): elements(es) {};
+    explicit Array(const vector<shared_ptr<Object>> &es): elements(es) {};
 
     ObjectType type() {
       return ARRAY_OBJ;
@@ -281,7 +281,7 @@ namespace object {
   public:
     map<HashKey, HashPair> pairs;
 
-    Hash(map<HashKey, HashPair> ps): pairs(ps) {};
+    explicit Hash(const map<HashKey, HashPair> &ps): pairs(ps) {};
 
     ObjectType type() {
       return HASH_OBJ;
@@ -309,7 +309,7 @@ namespace object {
   public:
     shared_ptr<Node> node;
 
-    Quote(shared_ptr<Node> n): node(n) {};
+    explicit Quote(shared_ptr<Node> n): node(n) {};
 
     string type() {
       return QUOTE_OBJ;
@@ -326,7 +326,7 @@ namespace object {
     shared_ptr<BlockStatement> body;
     shared_ptr<Environment> env;
 
-    Macro(vector<shared_ptr<Identifier>> ps,
+    Macro(const vector<shared_ptr<Identifier>> &ps,
           shared_ptr<BlockStatement> b,
           shared_ptr<Environment> e)
       : parameters(ps), body(b), env(e) {};

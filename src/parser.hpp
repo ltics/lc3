@@ -50,17 +50,17 @@ namespace parser {
     map<token::TokenType, infix_parse_fn> infix_parse_fns;
 
   public:
-    Parser(shared_ptr<lexer::Lexer> l);
+    explicit Parser(shared_ptr<lexer::Lexer> l);
 
     auto get_prefix_parse_fns() -> map<token::TokenType, prefix_parse_fn>;
     auto get_infix_parse_fns() -> map<token::TokenType, infix_parse_fn>;
     auto next_token() -> void;
-    auto current_token_is(token:: TokenType tt) -> bool;
-    auto peek_token_is(token::TokenType tt) -> bool;
-    auto expect_peek(token::TokenType tt) -> bool;
+    auto current_token_is(const token:: TokenType &tt) -> bool;
+    auto peek_token_is(const token::TokenType &tt) -> bool;
+    auto expect_peek(const token::TokenType &tt) -> bool;
     auto get_errors() -> vector<string>;
-    auto peek_error(token::TokenType tt) -> void;
-    auto no_prefix_parse_fn_error(token::TokenType tt) -> void;
+    auto peek_error(const token::TokenType &tt) -> void;
+    auto no_prefix_parse_fn_error(const token::TokenType &tt) -> void;
 
     auto peek_precedence() -> Precedence;
     auto current_precedence() -> Precedence;
@@ -89,15 +89,14 @@ namespace parser {
     auto parse_index_expression(shared_ptr<ast::Expression> left) -> shared_ptr<ast::Expression>;
     auto parse_hash_literal() -> shared_ptr<ast::Expression>;
 
-    auto register_prefix(token::TokenType tt, prefix_parse_fn f) -> void;
-    auto register_infix(token::TokenType tt, infix_parse_fn f) -> void;
+    auto register_prefix(const token::TokenType &tt, prefix_parse_fn f) -> void;
+    auto register_infix(const token::TokenType &tt, infix_parse_fn f) -> void;
 
     static auto new_parser(shared_ptr<lexer::Lexer> l) -> shared_ptr<Parser>;
   };
 
-  Parser::Parser(shared_ptr<lexer::Lexer> l) {
+  Parser::Parser(shared_ptr<lexer::Lexer> l): errors({}) {
     this->lexer = l;
-    this->errors = {};
     this->prefix_parse_fns = {};
     this->register_prefix(token::IDENT, std::bind(&Parser::parse_identifier, this));
     this->register_prefix(token::INT, std::bind(&Parser::parse_integer_literal, this));
@@ -146,15 +145,15 @@ namespace parser {
     this->peek_token = this->lexer->next_token();
   }
 
-  auto Parser::current_token_is(token::TokenType tt) -> bool {
+  auto Parser::current_token_is(const token::TokenType &tt) -> bool {
     return this->current_token.type == tt;
   }
 
-  auto Parser::peek_token_is(token::TokenType tt) -> bool {
+  auto Parser::peek_token_is(const token::TokenType &tt) -> bool {
     return this->peek_token.type == tt;
   }
 
-  auto Parser::expect_peek(token::TokenType tt) -> bool {
+  auto Parser::expect_peek(const token::TokenType &tt) -> bool {
     if (this->peek_token_is(tt)) {
       this->next_token();
       return true;
@@ -168,7 +167,7 @@ namespace parser {
     return this->errors;
   }
 
-  auto Parser::peek_error(token::TokenType tt) -> void {
+  auto Parser::peek_error(const token::TokenType &tt) -> void {
     string msg("");
     msg += "expected next token to be ";
     msg += tt;
@@ -178,7 +177,7 @@ namespace parser {
     this->errors.push_back(msg);
   }
 
-  auto Parser::no_prefix_parse_fn_error(token::TokenType tt) -> void {
+  auto Parser::no_prefix_parse_fn_error(const token::TokenType &tt) -> void {
     string msg("");
     msg += "no prefix parse function for ";
     msg += tt;
@@ -186,11 +185,11 @@ namespace parser {
     this->errors.push_back(msg);
   }
 
-  auto Parser::register_prefix(token::TokenType tt, prefix_parse_fn f) -> void {
+  auto Parser::register_prefix(const token::TokenType &tt, prefix_parse_fn f) -> void {
     this->prefix_parse_fns[tt] = f;
   }
 
-  auto Parser::register_infix(token::TokenType tt, infix_parse_fn f) -> void {
+  auto Parser::register_infix(const token::TokenType &tt, infix_parse_fn f) -> void {
     this->infix_parse_fns[tt] = f;
   }
 

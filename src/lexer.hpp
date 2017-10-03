@@ -15,7 +15,8 @@ namespace lexer {
     char ch; // current char under examination
 
   public:
-    Lexer(string input);
+    Lexer(): input(""), position(0), read_position(0), ch('\0') {};
+    explicit Lexer(const string &input);
 
     auto read_char() -> void;
     auto peek_char() -> char;
@@ -31,8 +32,7 @@ namespace lexer {
     static auto new_lexer(string input) -> shared_ptr<Lexer>;
   };
 
-  Lexer::Lexer(string input) {
-    this->input = input;
+  Lexer::Lexer(const string &input): input(input) {
     this->position = 0;
     this->read_position = 0;
     this->ch = '\0';

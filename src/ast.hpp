@@ -43,12 +43,9 @@ namespace ast {
   public:
     token::Token token;
 
-    Node() {
-      token = {"empty", "empty"};
-    };
-    Node(token::Token t) {
-      token = t;
-    };
+    Node(): token({ "empty", "empty" }) {};
+    explicit Node(const token::Token &t): token(t) {};
+
     virtual NodeType type() = 0;
     virtual string token_literal() = 0;
     virtual string to_string() = 0;
@@ -57,7 +54,7 @@ namespace ast {
   class Statement : public Node {
   public:
     Statement(): Node() {};
-    Statement(token::Token t): Node(t) {};
+    explicit Statement(const token::Token &t): Node(t) {};
 
     NodeType type() {
       return NodeType::STATEMENT;
@@ -75,7 +72,7 @@ namespace ast {
   class Expression : public Node {
   public:
     Expression(): Node() {};
-    Expression(token::Token t): Node(t) {};
+    explicit Expression(const token::Token &t): Node(t) {};
 
     NodeType type() {
       return NodeType::EXPRESSION;
@@ -109,7 +106,7 @@ namespace ast {
   class Program : public Node {
   public:
     vector<shared_ptr<Statement>> statements = {};
-    Program(vector<shared_ptr<Statement>> stms): statements(stms) {};
+    explicit Program(const vector<shared_ptr<Statement>> &stms): statements(stms) {};
 
     NodeType type() {
       return NodeType::PROGRAM;
@@ -136,7 +133,7 @@ namespace ast {
   public:
     string value;
 
-    Identifier(token::Token t, string v): Expression(t), value(v) {};
+    Identifier(const token::Token &t, const string &v): Expression(t), value(v) {};
 
     NodeType type() {
       return NodeType::IDENTIFIER;
@@ -155,7 +152,7 @@ namespace ast {
   public:
     bool value;
 
-    Boolean(token::Token t, bool v): Expression(t), value(v) {};
+    Boolean(const token::Token &t, bool v): Expression(t), value(v) {};
 
     NodeType type() {
       return NodeType::BOOLEAN;
@@ -178,7 +175,7 @@ namespace ast {
   public:
     int value;
 
-    IntegerLiteral(token::Token t, int v): Expression(t), value(v) {};
+    IntegerLiteral(const token::Token &t, int v): Expression(t), value(v) {};
 
     NodeType type() {
       return NodeType::INTEGERLITERAL;
@@ -197,7 +194,7 @@ namespace ast {
   public:
     string value;
 
-    StringLiteral(token::Token t, string v): Expression(t), value(v) {};
+    StringLiteral(const token::Token &t, const string &v): Expression(t), value(v) {};
 
     NodeType type() {
       return NodeType::STRINGLITERAL;
@@ -217,8 +214,8 @@ namespace ast {
     string prefix_operator;
     shared_ptr<Expression> right;
 
-    PrefixExpression(token::Token t,
-                     string o,
+    PrefixExpression(const token::Token &t,
+                     const string &o,
                      shared_ptr<Expression> r)
       : Expression(t), prefix_operator(o), right(r) {};
 
@@ -246,9 +243,9 @@ namespace ast {
     string infix_operator;
     shared_ptr<Expression> right;
 
-    InfixExpression(token::Token t,
+    InfixExpression(const token::Token &t,
                     shared_ptr<Expression> l,
-                    string o,
+                    const string &o,
                     shared_ptr<Expression> r)
       : Expression(t), left(l), infix_operator(o), right(r) {};
 
@@ -278,7 +275,10 @@ namespace ast {
     shared_ptr<Identifier> name;
     shared_ptr<Expression> value;
 
-    LetStatement(token::Token t, shared_ptr<Identifier> n, shared_ptr<Expression> v): Statement(t), name(n), value(v) {};
+    LetStatement(const token::Token &t,
+                 shared_ptr<Identifier> n,
+                 shared_ptr<Expression> v)
+      : Statement(t), name(n), value(v) {};
 
     NodeType type() {
       return NodeType::LETSTATEMENT;
@@ -305,7 +305,9 @@ namespace ast {
   public:
     shared_ptr<Expression> value;
 
-    ReturnStatement(token::Token t, shared_ptr<Expression> v): Statement(t), value(v) {};
+    ReturnStatement(const token::Token &t,
+                    shared_ptr<Expression> v)
+      : Statement(t), value(v) {};
 
     NodeType type() {
       return NodeType::RETURNSTATEMENT;
@@ -332,7 +334,9 @@ namespace ast {
   public:
     shared_ptr<Expression> expression;
 
-    ExpressionStatement(token::Token t, shared_ptr<Expression> expr): Statement(t), expression(expr) {};
+    ExpressionStatement(const token::Token &t,
+                        shared_ptr<Expression> expr)
+      : Statement(t), expression(expr) {};
 
     NodeType type() {
       return NodeType::EXPRESSIONSTATEMENT;
@@ -355,7 +359,9 @@ namespace ast {
   public:
     vector<shared_ptr<Statement>> statements;
 
-    BlockStatement(token::Token t, vector<shared_ptr<Statement>> stms): Statement(t), statements(stms) {};
+    BlockStatement(const token::Token &t,
+                   const vector<shared_ptr<Statement>> &stms)
+      : Statement(t), statements(stms) {};
 
     NodeType type() {
       return NodeType::BLOCKSTATEMENT;
@@ -369,7 +375,10 @@ namespace ast {
       if (statements.size() == 1) {
         return statements[0]->to_string();
       } else {
-        vector<string> strs = statements | view::transform([](shared_ptr<Statement> stmt) { return "  " + stmt->to_string(); });
+        vector<string> strs = statements
+          | view::transform([](shared_ptr<Statement> stmt) {
+              return "  " + stmt->to_string();
+            });
         string s = strs | view::join('\n');
         return s;
       }
@@ -382,7 +391,7 @@ namespace ast {
     shared_ptr<BlockStatement> consequence;
     shared_ptr<BlockStatement> alternative;
 
-    IfExpression(token::Token t,
+    IfExpression(const token::Token &t,
                  shared_ptr<Expression> cond,
                  shared_ptr<BlockStatement> cons,
                  shared_ptr<BlockStatement> alt)
@@ -418,7 +427,10 @@ namespace ast {
     vector<shared_ptr<Identifier>> parameters;
     shared_ptr<BlockStatement> body;
 
-    FunctionLiteral(token::Token t, vector<shared_ptr<Identifier>> ps, shared_ptr<BlockStatement> b): Expression(t), parameters(ps), body(b) {};
+    FunctionLiteral(const token::Token &t,
+                    const vector<shared_ptr<Identifier>> &ps,
+                    shared_ptr<BlockStatement> b)
+      : Expression(t), parameters(ps), body(b) {};
 
     NodeType type() {
       return NodeType::FUNCTIONLITERAL;
@@ -431,7 +443,10 @@ namespace ast {
     string to_string() {
       string s("");
 
-      string literal = flatten_expressions(parameters | view::transform([](shared_ptr<Identifier> a) { return static_pointer_cast<Expression>(a); }));
+      string literal = flatten_expressions(parameters
+                                           | view::transform([](shared_ptr<Identifier> a) {
+                                               return static_pointer_cast<Expression>(a);
+                                             }));
 
       s += this->token_literal();
       s += "(";
@@ -448,7 +463,10 @@ namespace ast {
     shared_ptr<Expression> function;
     vector<shared_ptr<Expression>> arguments;
 
-    CallExpression(token::Token t, shared_ptr<Expression> f, vector<shared_ptr<Expression>> args): Expression(t), function(f), arguments(args) {};
+    CallExpression(const token::Token &t,
+                   shared_ptr<Expression> f,
+                   const vector<shared_ptr<Expression>> &args)
+      : Expression(t), function(f), arguments(args) {};
 
     NodeType type() {
       return NodeType::CALLEXPRESSION;
@@ -475,7 +493,9 @@ namespace ast {
   public:
     vector<shared_ptr<Expression>> elements;
 
-    ArrayLiteral(token::Token t, vector<shared_ptr<Expression>> elems): Expression(t), elements(elems) {};
+    ArrayLiteral(const token::Token &t,
+                 const vector<shared_ptr<Expression>> &elems)
+      : Expression(t), elements(elems) {};
 
     NodeType type() {
       return NodeType::ARRAYLITERAL;
@@ -502,7 +522,10 @@ namespace ast {
     shared_ptr<Expression> left;
     shared_ptr<Expression> index;
 
-    IndexExpression(token::Token t, shared_ptr<Expression> l, shared_ptr<Expression> i): Expression(t), left(l), index(i) {};
+    IndexExpression(const token::Token &t,
+                    shared_ptr<Expression> l,
+                    shared_ptr<Expression> i)
+      : Expression(t), left(l), index(i) {};
 
     NodeType type() {
       return NodeType::INDEXEXPRESSION;
@@ -528,7 +551,9 @@ namespace ast {
   public:
     map<shared_ptr<Expression>, shared_ptr<Expression>> pairs;
 
-    HashLiteral(token::Token t, map<shared_ptr<Expression>, shared_ptr<Expression>> ps): Expression(t), pairs(ps) {};
+    HashLiteral(const token::Token &t,
+                const map<shared_ptr<Expression>, shared_ptr<Expression>> &ps)
+      : Expression(t), pairs(ps) {};
 
     NodeType type() {
       return NodeType::HASHLITERAL;
@@ -541,7 +566,10 @@ namespace ast {
     string to_string() {
       string s("");
 
-      vector<string> literals = pairs | view::transform([](pair<shared_ptr<Expression>, shared_ptr<Expression>> const &p) { return p.first->to_string() + ":" + p.second->to_string(); });
+      vector<string> literals = pairs
+        | view::transform([](pair<shared_ptr<Expression>, shared_ptr<Expression>> const &p) {
+            return p.first->to_string() + ":" + p.second->to_string();
+          });
       string literal = literals | view::join(',');
 
       s += "{";
@@ -556,7 +584,10 @@ namespace ast {
     vector<shared_ptr<Identifier>> parameters;
     shared_ptr<BlockStatement> body;
 
-    MacroLiteral(token::Token t, vector<shared_ptr<Identifier>> ps, shared_ptr<BlockStatement> b): Expression(t), parameters(ps), body(b) {};
+    MacroLiteral(const token::Token &t,
+                 const vector<shared_ptr<Identifier>> &ps,
+                 shared_ptr<BlockStatement> b)
+      : Expression(t), parameters(ps), body(b) {};
 
     NodeType type() {
       return NodeType::MACROLITERAL;
@@ -567,7 +598,10 @@ namespace ast {
     }
 
     string to_string() {
-      string literal = flatten_expressions(parameters | view::transform([](shared_ptr<Identifier> a) { return static_pointer_cast<Expression>(a); }));
+      string literal = flatten_expressions(parameters
+                                           | view::transform([](shared_ptr<Identifier> a) {
+                                               return static_pointer_cast<Expression>(a);
+                                             }));
       return format("{0}({1}) {2}", this->token_literal(), literal, this->body->to_string());
     }
   };

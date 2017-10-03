@@ -34,7 +34,7 @@ namespace interpret {
     return true;
   }
 
-  auto interp(string input, shared_ptr<Environment> env, shared_ptr<Environment> macro_env) -> void {
+  auto interp(const string &input, shared_ptr<Environment> env, shared_ptr<Environment> macro_env) -> void {
     shared_ptr<Lexer> l = Lexer::new_lexer(input);
     shared_ptr<Parser> p = Parser::new_parser(l);
     shared_ptr<Program> program = p->parse_program();
@@ -54,13 +54,13 @@ namespace interpret {
     }
   }
 
-  auto load(string path, shared_ptr<Environment> env, shared_ptr<Environment> macro_env) -> void {
+  auto load(const string &path, shared_ptr<Environment> env, shared_ptr<Environment> macro_env) -> void {
     ifstream in(path);
     string input((istreambuf_iterator<char>(in)), istreambuf_iterator<char>());
     interp(input, env, macro_env);
   }
 
-  auto run(string path) -> void {
+  auto run(const string &path) -> void {
     auto env = make_shared<Environment>();
     auto macro_env = make_shared<Environment>();
     load(path, env, macro_env);

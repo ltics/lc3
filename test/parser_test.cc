@@ -71,7 +71,10 @@ auto test_literal_expression(shared_ptr<Expression> expr, TestVariant expected) 
   }
 }
 
-auto test_infix_expression(shared_ptr<Expression> expression, TestVariant expected_left, string expected_operator, TestVariant expected_right) -> void {
+auto test_infix_expression(shared_ptr<Expression> expression,
+                           const TestVariant &expected_left,
+                           const string &expected_operator,
+                           const TestVariant &expected_right) -> void {
   shared_ptr<InfixExpression> expr = static_pointer_cast<InfixExpression>(expression);
   REQUIRE(expr->infix_operator == expected_operator);
   REQUIRE(test_literal_expression(expr->left, expected_left));

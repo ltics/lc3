@@ -1,7 +1,7 @@
 CC=c++
 FLAG=-Wall -std=c++14 -I./include/range-v3/include -I./include/catch/single_include -I./include/fmt
 MAIN=lc3
-TEST=test
+TEST=test-exec
 OBJS=token.o lexer.o ast.o parser.o object.o builtins.o modify.o quote_unquote.o eval.o macro_expansion.o interpret.o repl.o main.o
 
 .PHONY: test clean all
@@ -53,14 +53,14 @@ main: main.o
 	$(CC) $(FLAG) -ledit main.o -o $(MAIN)
 
 test:
-	$(CC) $(FLAG) ./test/token_test.cc && ./a.out
-	$(CC) $(FLAG) ./test/lexer_test.cc && ./a.out
-	$(CC) $(FLAG) ./test/ast_test.cc && ./a.out
-	$(CC) $(FLAG) ./test/parser_test.cc && ./a.out
-	$(CC) $(FLAG) ./test/eval_test.cc && ./a.out
-	$(CC) $(FLAG) ./test/modify_test.cc && ./a.out
-	$(CC) $(FLAG) ./test/quote_unquote_test.cc && ./a.out
-	$(CC) $(FLAG) ./test/macro_expansion_test.cc && ./a.out
+	$(CC) $(FLAG) ./test/token_test.cc -o $(TEST) && ./$(TEST)
+	$(CC) $(FLAG) ./test/lexer_test.cc -o $(TEST) && ./$(TEST)
+	$(CC) $(FLAG) ./test/ast_test.cc -o $(TEST) && ./$(TEST)
+	$(CC) $(FLAG) ./test/parser_test.cc -o $(TEST) && ./$(TEST)
+	$(CC) $(FLAG) ./test/eval_test.cc -o $(TEST) && ./$(TEST)
+	$(CC) $(FLAG) ./test/modify_test.cc -o $(TEST) && ./$(TEST)
+	$(CC) $(FLAG) ./test/quote_unquote_test.cc -o $(TEST) && ./$(TEST)
+	$(CC) $(FLAG) ./test/macro_expansion_test.cc -o $(TEST) && ./$(TEST)
 
 clean:
-	rm *.o *.out $(MAIN)
+	rm *.o $(MAIN) $(TEST)

@@ -3,7 +3,7 @@
 ## Build, Test and Run
 
 ```bash
-./run.sh
+./build.sh
 ```
 
 ## Turing complete

@@ -1,3 +1,5 @@
+#pragma once
+
 #include "../src/lexer.hpp"
 #include "../src/parser.hpp"
 #include "../src/eval.hpp"

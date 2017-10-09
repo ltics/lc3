@@ -1,4 +1,3 @@
-#define CATCH_CONFIG_MAIN  // This tells Catch to provide a main() - only do this in one cpp file
 #include "catch.hpp"
 #include <memory>
 #include <vector>
@@ -38,7 +37,7 @@ TEST_CASE("lexer test") {
   };
 
   string input;
-  input = accumulate(inputs.cbegin(), inputs.cend(), input);
+  input = std::accumulate(inputs.cbegin(), inputs.cend(), input);
 
   shared_ptr<lexer::Lexer> l = lexer::Lexer::new_lexer(input);
 
@@ -145,7 +144,7 @@ TEST_CASE("lexer test") {
     { token::EOFT, string(1, '\0') } // literally string(1, '\0') and "" are identical, but dunno why can not pass the equality checking
   };
 
-  for_each(tests.cbegin(), tests.cend(), [=](token::Token t) -> void {
+  std::for_each(tests.cbegin(), tests.cend(), [=](token::Token t) -> void {
       token::Token tok = l -> next_token();
       REQUIRE(tok.type == t.type);
       REQUIRE(tok.literal == t.literal);

@@ -7,8 +7,6 @@ mkdir build && cd build
 cmake ..
 make
 make test
-if [ ! -f "lc3" ]
-then
-    echo "File lc3 does not exist"
+if [ $? != 0 ] || [ ! -f "lc3" ] ; then
     exit 1
 fi
